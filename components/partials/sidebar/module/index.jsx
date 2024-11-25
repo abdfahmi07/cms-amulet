@@ -155,7 +155,7 @@ const ModuleSidebar = ({ trans }) => {
           )}
         >
           <div className=" pt-4 ">
-            <Link href="/dashboard">
+            <Link href="/list-reporting">
               <img src="/images/logo/logo-short.png" className="w-8 m-auto" />
             </Link>
           </div>
