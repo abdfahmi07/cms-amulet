@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: "CMS Raksha",
+  name: "CMS Amulet",
   description: null,
   theme: "violet",
   layout: "vertical",
