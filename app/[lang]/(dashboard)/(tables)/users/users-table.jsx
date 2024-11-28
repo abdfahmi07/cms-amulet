@@ -49,50 +49,55 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export function ItinerariesTable() {
-  const [itineraries, setItineraries] = React.useState([]);
+export function UsersTable() {
+  const [users, setUsers] = React.useState([]);
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [detailItinerary, setDetailItinerary] = React.useState({});
-
-  const getDetailItinerary = async (itineraryId) => {
-    try {
-      const { data } = await axios.get(
-        `https://api-rakhsa.inovatiftujuh8.com/api/v1/event/${itineraryId}`
-      );
-
-      setDetailItinerary(data.data);
-    } catch (err) {
-      toast.error(err.response.message || "Something Went Wrong");
-    }
-  };
-
-  console.log(detailItinerary);
-  const handleDialogTriggerClick = (event, iteneraryId) => {
-    getDetailItinerary(iteneraryId);
-    // setIsDialogOpen(true);
-  };
 
   const [columns, setColumns] = React.useState([
     {
-      accessorKey: "user.name",
+      accessorKey: "avatar",
       header: () => {
-        return <div className="ml-5">Name</div>;
+        return <div className="ml-5">Avatar</div>;
       },
       cell: ({ row }) => (
-        <div className="capitalize whitespace-nowrap ml-5">
-          {row.original.user.name}
+        <Avatar className="rounded-lg m-auto">
+          <AvatarImage src={row.original.avatar} />
+          <AvatarFallback>{`Avatar ${row.original.fullname}`}</AvatarFallback>
+        </Avatar>
+      ),
+    },
+    {
+      accessorKey: "fullname",
+      header: "Fullname",
+      cell: ({ row }) => (
+        <div className="capitalize whitespace-nowrap">
+          {row.getValue("fullname") || "-"}
         </div>
       ),
     },
     {
-      accessorKey: "title",
-      header: "Title",
+      accessorKey: "email",
+      header: "Email",
       cell: ({ row }) => (
-        <div className="capitalize whitespace-nowrap">
-          {row.getValue("title")}
+        <div className="whitespace-nowrap">{row.getValue("email") || "-"}</div>
+      ),
+    },
+    {
+      accessorKey: "phone",
+      header: "Phone",
+      cell: ({ row }) => (
+        <div className="whitespace-nowrap">{row.getValue("phone") || "-"}</div>
+      ),
+    },
+    {
+      accessorKey: "emergency_contact",
+      header: "Emergency Contact",
+      cell: ({ row }) => (
+        <div className="whitespace-nowrap">
+          {row.getValue("emergency_contact") || "-"}
         </div>
       ),
     },
@@ -109,26 +114,7 @@ export function ItinerariesTable() {
     //     </div>
     //   ),
     // },
-    {
-      accessorKey: "destination",
-      header: "Destination",
-      cell: ({ row }) => (
-        <div className="capitalize whitespace-nowrap">
-          {`${row.original.state}, ${row.original.continent}`}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "period",
-      header: ({ column }) => {
-        return <div className="text-left">Period</div>;
-      },
-      cell: ({ row }) => (
-        <div className="text-left whitespace-nowrap">
-          {row.original.start_date} - {row.original.end_date}
-        </div>
-      ),
-    },
+
     {
       id: "actions",
       header: ({ column }) => {
@@ -151,48 +137,61 @@ export function ItinerariesTable() {
               <DialogContent size="xl">
                 <DialogHeader>
                   <DialogTitle className="text-base font-medium text-default-700 ">
-                    Detail Itinerary
+                    Detail User
                   </DialogTitle>
                 </DialogHeader>
                 <div className="text-sm text-default-500 space-y-4">
-                  <div className="flex flex-col gap-y-3">
+                  <div className="flex flex-col gap-y-4">
                     <div className="flex flex-col gap-y-2">
-                      <p className="text-muted-foreground text-sm">Name</p>
+                      <p className="text-muted-foreground text-sm">Avatar</p>
+                      <Avatar className="rounded-lg h-[56px] w-[56px]">
+                        <AvatarImage src={row.original.avatar} />
+                        <AvatarFallback>{`Avatar ${row.original.fullname}`}</AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className="flex flex-col gap-y-2">
+                      <p className="text-muted-foreground text-sm">Fullname</p>
                       <p className="text-sm text-default-900">
-                        {row.original.user.name}
+                        {row.original.fullname}
                       </p>
                     </div>
                     <div className="flex flex-col gap-y-2">
-                      <p className="text-muted-foreground text-sm">Title</p>
+                      <p className="text-muted-foreground text-sm">Username</p>
                       <p className="text-sm text-default-900">
-                        {row.original.title}
+                        {row.original.username || "-"}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-y-2">
+                      <p className="text-muted-foreground text-sm">Address</p>
+                      <p className="text-sm text-default-900">
+                        {row.original.address || "-"}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-y-2">
+                      <p className="text-muted-foreground text-sm">Email</p>
+                      <p className="text-sm text-default-900">
+                        {row.original.email || "-"}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-y-2">
+                      <p className="text-muted-foreground text-sm">Phone</p>
+                      <p className="text-sm text-default-900">
+                        {row.original.phone || "-"}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-y-2">
+                      <p className="text-muted-foreground text-sm">NIK</p>
+                      <p className="text-sm text-default-900">
+                        {row.original.nik || "-"}
                       </p>
                     </div>
                     <div className="flex flex-col gap-y-2">
                       <p className="text-muted-foreground text-sm">
-                        Description
+                        Emergency Contact
                       </p>
-                      <p
-                        style={{
-                          whiteSpace: "pre-line",
-                          wordBreak: "break-word",
-                          overflowWrap: "break-word",
-                        }}
-                        className="text-sm text-default-900"
-                        dangerouslySetInnerHTML={{
-                          __html: row.original.description,
-                        }}
-                      ></p>
-                    </div>
-                    <div className="flex flex-col gap-y-2">
-                      <p className="text-muted-foreground text-sm">
-                        Destination
+                      <p className="text-sm text-default-900">
+                        {row.original.emergency_contact || "-"}
                       </p>
-                      <p className="text-sm text-default-900">{`${row.original.state}, ${row.original.continent}`}</p>
-                    </div>
-                    <div className="flex flex-col gap-y-2">
-                      <p className="text-muted-foreground text-sm">Period</p>
-                      <p className="text-sm text-default-900">{`${row.original.start_date} - ${row.original.end_date}`}</p>
                     </div>
                   </div>
                 </div>
@@ -211,24 +210,24 @@ export function ItinerariesTable() {
     },
   ]);
 
-  const getItineraries = async () => {
+  const getUsers = async () => {
     try {
       const { data } = await axios.get(
-        `https://api-rakhsa.inovatiftujuh8.com/api/v1/event`
+        `https://api-rakhsa.inovatiftujuh8.com/api/v1/admin/list/user`
       );
 
-      setItineraries(data.data);
+      setUsers(data.data);
     } catch (err) {
       toast.error("Something Went Wrong");
     }
   };
 
   React.useEffect(() => {
-    getItineraries();
+    getUsers();
   }, []);
 
   const table = useReactTable({
-    data: itineraries,
+    data: users,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -341,7 +340,7 @@ export function ItinerariesTable() {
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
 
-        <div className="flex gap-2  items-center">
+        <div className="flex gap-2 items-center">
           <Button
             variant="outline"
             size="icon"
@@ -388,4 +387,4 @@ export function ItinerariesTable() {
   );
 }
 
-export default ItinerariesTable;
+export default UsersTable;

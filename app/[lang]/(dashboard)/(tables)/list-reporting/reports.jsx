@@ -181,7 +181,7 @@ export function Reports() {
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [socket, setSocket] = React.useState(null);
+  // const [socket, setSocket] = React.useState(null);
 
   const [confirmSOSData, setConfirmSOSData] = React.useState({});
   const [detailSOS, setDetailSOS] = React.useState({});
@@ -208,6 +208,10 @@ export function Reports() {
   const [pinnedMessages, setPinnedMessages] = React.useState([]);
   const [isForward, setIsForward] = React.useState(false);
   const router = useRouter();
+
+  const ws = React.useRef(null);
+  const chatHeightRef = React.useRef(null);
+  const pingInterval = React.useRef(null);
 
   const {
     isLoading,
@@ -246,8 +250,8 @@ export function Reports() {
   // });
 
   const sendMessageWS = (message) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(
         JSON.stringify({
           type: "message",
           chat_id: confirmSOSData.chat_id,
@@ -260,11 +264,11 @@ export function Reports() {
   };
 
   const offerToEndChatSession = () => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(
         JSON.stringify({
           type: "finish-sos",
-          sos_id: confirmSOSData.id,
+          sos_id: confirmSOSData.sos_id,
         })
       );
     }
@@ -313,7 +317,6 @@ export function Reports() {
 
     sendMessageWS(message);
   };
-  const chatHeightRef = React.useRef(null);
 
   // replay message
   const handleReply = (data, contact) => {
@@ -421,12 +424,18 @@ export function Reports() {
         `https://api-rakhsa.inovatiftujuh8.com/api/v1/sos`,
         {
           params: {
-            is_confirm: filterValue === "recent" ? false : true,
+            type:
+              filterValue === "recent"
+                ? "waiting"
+                : filterValue === "on_process"
+                ? "process"
+                : "confirmed",
+            platform_type: "amulet",
           },
         }
       );
 
-      setRows(data.data);
+      setRows(data.data.slice().reverse());
     } catch (err) {
       toast.error(err.response.message || "Something Went Wrong");
     }
@@ -436,9 +445,9 @@ export function Reports() {
     getListReporting();
   }, [filterValue]);
 
-  const join = (socket) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(
+  const join = () => {
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(
         JSON.stringify({
           type: "join",
           user_id: user.user.id,
@@ -448,8 +457,8 @@ export function Reports() {
   };
 
   const confirmSOS = (event, sosId) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(
         JSON.stringify({
           type: "confirm-sos",
           sos_id: sosId,
@@ -490,20 +499,47 @@ export function Reports() {
   //   return () => {};
   // }, [paymentDetail]);
 
+  const startPing = () => {
+    pingInterval.current = setInterval(() => {
+      if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+        ws.current.send(
+          JSON.stringify({
+            type: "ping",
+          })
+        );
+        console.log("Sent: ping");
+      }
+    }, 5000);
+  };
+
+  // Clear the ping timer
+  const stopPing = () => {
+    if (pingInterval.current) {
+      clearInterval(pingInterval.current);
+      pingInterval.current = null;
+    }
+  };
+
   React.useEffect(() => {
     const connectWs = () => {
-      const ws = new WebSocket("wss://websockets-rakhsa.inovatiftujuh8.com");
+      ws.current = new WebSocket("wss://websockets-rakhsa.inovatiftujuh8.com");
 
-      ws.onopen = () => {
+      ws.current.onopen = () => {
         console.log("Connected to WebSocket");
-        setSocket(ws);
-        join(ws);
+        // setSocket(ws);
+        join();
+        startPing();
       };
 
-      ws.onmessage = (event) => {
+      ws.current.onmessage = (event) => {
         const parsedData = JSON.parse(event.data);
 
-        if (parsedData.type === "sos") {
+        console.log(parsedData);
+
+        if (
+          parsedData.type === "sos" &&
+          parsedData.platform_type === "amulet"
+        ) {
           setFilterValue("recent");
           setRows((prevRows) => [
             ...prevRows,
@@ -537,8 +573,11 @@ export function Reports() {
         if (parsedData.type === "confirm-sos") {
           // setIsConfirmReport(parsedData.is_confirm);
           setConfirmSOSData(parsedData);
-          queryClient.fetchQuery(["message"], () =>
-            getMessagesCallback(parsedData)
+          // queryClient.fetchQuery(["message"], () =>
+          //   getMessagesCallback(parsedData)
+          // );
+          router.push(
+            `/list-reporting/chat?id=${parsedData.chat_id}&sos=${parsedData.sos_id}&sender=${parsedData.sender_id}`
           );
         }
 
@@ -547,21 +586,23 @@ export function Reports() {
         }
       };
 
-      ws.onclose = () => {
+      ws.current.onclose = () => {
         console.log("WebSocket connection closed");
+        stopPing();
       };
 
-      ws.onerror = (error) => {
+      ws.current.onerror = (error) => {
         console.error("WebSocket error:", error);
-        ws.close();
+        // ws.current.close();
       };
     };
 
     connectWs();
 
-    // return () => {
-    //   connectWs();
-    // };
+    return () => {
+      stopPing();
+      ws.current?.close();
+    };
   }, []);
 
   const getDetailReporting = async (sosId) => {
@@ -587,7 +628,7 @@ export function Reports() {
 
   return (
     <>
-      {confirmSOSData.is_confirm ? (
+      {/* {confirmSOSData.is_confirm ? (
         <div className="flex-1 ">
           <div className="flex space-x-5 h-full rtl:space-x-reverse">
             <div className="flex-1">
@@ -672,61 +713,80 @@ export function Reports() {
           </div>
         </div>
       ) : (
-        <>
-          <div className="flex items-center justify-between">
-            <div className="flex-1 text-2xl font-medium text-default-800 ">
-              {filterValue === "recent"
-                ? "Recently Reports"
-                : "History Reports"}
-            </div>
-            <div className="w-60">
-              <Select onValueChange={handleFilterChange} value={filterValue}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Recently Reports</SelectItem>
-                  <SelectItem value="history">History Reports</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="grid xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-5">
-            {rows.length !== 0 ? (
-              rows.map((row) => {
-                return (
-                  <Dialog key={row.id}>
-                    <Card className="">
-                      <CardContent className="p-0">
-                        <div className="w-full h-[191px] bg-muted-foreground overflow-hidden rounded-t-md">
-                          {row.type === "image" ? (
-                            <Image
-                              className="w-full h-full object-cover"
-                              src={row.media}
-                              alt="image"
-                              width={500}
-                              height={500}
-                            />
-                          ) : (
-                            <Player
-                              src={row.media}
-                              style={{ height: "12rem" }}
-                            />
-                          )}
+        <> */}
+      <div className="flex items-center justify-between">
+        <div className="flex-1 text-2xl font-medium text-default-800 ">
+          {filterValue === "recent"
+            ? "Recently Reports"
+            : filterValue === "on_process"
+            ? "On Process Reports"
+            : "History Reports"}
+        </div>
+        <div className="w-60">
+          <Select onValueChange={handleFilterChange} value={filterValue}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Recently Reports</SelectItem>
+              <SelectItem value="on_process">On Process Reports</SelectItem>
+              <SelectItem value="history">History Reports</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div
+        className={`grid ${
+          filterValue === "recent" || filterValue === "on_process"
+            ? "xl:grid-cols-3 md:grid-cols-2 grid-cols-1"
+            : "xl:grid-cols-4 md:grid-cols-3 grid-cols-2"
+        }  gap-3`}
+      >
+        {rows.length !== 0 ? (
+          rows.map((row) => {
+            return (
+              <Dialog key={row.id}>
+                <Card className="">
+                  <CardContent className="p-0">
+                    <div className="w-full h-[191px] bg-muted-foreground overflow-hidden rounded-t-md">
+                      {row.type === "image" ? (
+                        <Image
+                          className="w-full h-full object-cover"
+                          src={row.media}
+                          alt="image"
+                          width={500}
+                          height={500}
+                        />
+                      ) : (
+                        <Player src={row.media} style={{ height: "12rem" }} />
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <div className="flex flex-col gap-y-3">
+                        <div className="flex flex-col gap-y-2">
+                          <p className="text-muted-foreground text-sm">
+                            Status
+                          </p>
+                          <Badge
+                            color={
+                              row.is_confirm && row.is_finish
+                                ? "success"
+                                : row.is_confirm && !row.is_finish
+                                ? "info"
+                                : "warning"
+                            }
+                            className="w-fit"
+                          >
+                            {row.is_confirm && row.is_finish
+                              ? "Finished"
+                              : row.is_confirm && !row.is_finish
+                              ? "On Process"
+                              : "Waiting Confirm"}
+                          </Badge>
                         </div>
-                        <div className="p-4">
-                          <div className="flex flex-col gap-y-3">
-                            <div className="flex flex-col gap-y-2">
-                              <p className="text-muted-foreground text-sm">
-                                Status
-                              </p>
-                              <Badge
-                                color={row.is_confirm ? "success" : "warning"}
-                                className="w-fit"
-                              >
-                                {row.is_confirm ? "Confirmed" : "Unconfirmed"}
-                              </Badge>
-                            </div>
+                        {(filterValue === "recent" ||
+                          filterValue === "on_process") && (
+                          <>
                             <div className="flex flex-col gap-y-2">
                               <p className="text-muted-foreground text-sm">
                                 Name
@@ -751,175 +811,202 @@ export function Reports() {
                               </p>
                               <p className="text-sm">{`${row.time} WIB`}</p>
                             </div>
-                            <div className="flex gap-x-3 mt-2">
-                              <DialogTrigger
-                                className="flex-1"
-                                asChild
-                                onClick={(event) =>
-                                  handleDialogTriggerClick(event, row.id)
-                                }
-                              >
-                                <Button
-                                  className="basis-6/12 w-full exclude-element"
-                                  variant="outline"
-                                >
-                                  Detail
-                                </Button>
-                              </DialogTrigger>
-
-                              {row.is_confirm ? (
-                                <Link
-                                  className="basis-6/12 inline-block w-full"
-                                  href={{
-                                    pathname: "/list-reporting/chat",
-                                    query: {
-                                      id: row.chat_id,
-                                      sender: row.sender.id,
-                                    },
-                                  }}
-                                >
-                                  <Button
-                                    type="button"
-                                    className="w-full exclude-element"
-                                    // onClick={() =>
-                                    //   router.push(
-                                    //     "/list-reporting/chat?name=Udin"
-                                    //   )
-                                    // }
-                                  >
-                                    {"Show Chat"}
-                                  </Button>
-                                </Link>
-                              ) : (
-                                <Button
-                                  className="basis-6/12 exclude-element"
-                                  onClick={(event) => confirmSOS(event, row.id)}
-                                >
-                                  {"Confirm"}
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <DialogContent size="4xl">
-                      <DialogHeader>
-                        <DialogTitle className="text-base font-medium ">
-                          Detail Report
-                        </DialogTitle>
-                      </DialogHeader>
-
-                      <div className="flex justify-center gap-x-12 mt-2 text-sm text-default-500 space-y-4">
-                        {detailSOS.type === "image" ? (
-                          <Image
-                            className="w-56 object-cover"
-                            src={detailSOS.media}
-                            alt="image"
-                            width={500}
-                            height={500}
-                          />
-                        ) : (
-                          <Player
-                            src={row.media}
-                            style={{ width: "30rem", height: "20rem" }}
-                          />
+                          </>
                         )}
-                        <div className="flex flex-col gap-y-4">
-                          <div className="flex flex-col gap-y-2">
-                            <p className="text-muted-foreground text-sm">
-                              Name
-                            </p>
-                            <p className="text-sm text-default-900">
-                              {detailSOS.sender?.name}
-                            </p>
-                          </div>
-                          <div className="flex flex-col gap-y-2">
-                            <p className="text-muted-foreground text-sm">
-                              Location
-                            </p>
-                            <Link
-                              className="flex-1 block"
-                              href={`https://www.google.com/maps/search/?api=1&query=${row.lat}%2C${row.lng}`}
-                              target="_blank"
-                            >
-                              <p className="text-sm text-blue-700">
-                                {detailSOS.location}
-                              </p>
-                            </Link>
-                          </div>
-                          <div className="flex flex-col gap-y-2">
-                            <p className="text-muted-foreground text-sm">
-                              Time
-                            </p>
-                            <p className="text-sm text-default-900">{`${detailSOS.time} WIB`}</p>
-                          </div>
-                          <div className="flex flex-col gap-y-2">
-                            <p className="text-muted-foreground text-sm">
-                              Status
-                            </p>
-                            <Badge
-                              color={row.is_confirm ? "success" : "warning"}
-                              className="w-fit"
-                            >
-                              {row.is_confirm ? "Confirmed" : "Unconfirmed"}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      <DialogFooter className="mt-8 gap-2">
-                        <DialogClose asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            color="warning"
-                          >
-                            Close
-                          </Button>
-                        </DialogClose>
-
-                        {detailSOS.is_confirm ? (
-                          <Link
-                            className=""
-                            href={{
-                              pathname: "/list-reporting/chat",
-                              query: {
-                                id: row.chat_id,
-                                sender: row.sender.id,
-                              },
-                            }}
+                        <div className="flex gap-x-3 mt-2">
+                          <DialogTrigger
+                            className="flex-1"
+                            asChild
+                            onClick={(event) =>
+                              handleDialogTriggerClick(event, row.id)
+                            }
                           >
                             <Button
-                              className="exclude-element"
-                              // onClick={(event) => confirmSOS(event, row.id)}
-                              // disabled={row.is_confirm}
+                              className="basis-6/12 w-full exclude-element"
+                              variant="outline"
                             >
-                              {"Show Chat"}
+                              Detail
                             </Button>
-                          </Link>
-                        ) : (
-                          <Button
-                            className="exclude-element"
-                            onClick={(event) => confirmSOS(event, detailSOS.id)}
-                            // disabled={row.is_confirm}
-                          >
-                            {"Confirm"}
-                          </Button>
-                        )}
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                );
-              })
-            ) : (
-              <div className=" font-medium text-default-500">
-                I'm Sorry, Report Not Found
-              </div>
-            )}
+                          </DialogTrigger>
+
+                          {row.is_confirm && row.is_finish ? (
+                            <Link
+                              className="basis-6/12 inline-block w-full"
+                              href={{
+                                pathname: "/list-reporting/chat",
+                                query: {
+                                  id: row.chat_id,
+                                  sender: row.sender.id,
+                                },
+                              }}
+                            >
+                              <Button
+                                type="button"
+                                className="w-full exclude-element"
+                                // onClick={() =>
+                                //   router.push(
+                                //     "/list-reporting/chat?name=Udin"
+                                //   )
+                                // }
+                              >
+                                {"Show Chat"}
+                              </Button>
+                            </Link>
+                          ) : row.is_confirm && !row.is_finish ? (
+                            <Link
+                              className="basis-6/12 inline-block w-full"
+                              href={`/list-reporting/chat?id=${row.chat_id}&sos=${row.id}&sender=${row.sender.id}`}
+                            >
+                              <Button
+                                type="button"
+                                className="w-full exclude-element"
+                              >
+                                {"Show Chat"}
+                              </Button>
+                            </Link>
+                          ) : (
+                            <Button
+                              className="basis-6/12 exclude-element"
+                              onClick={(event) => confirmSOS(event, row.id)}
+                            >
+                              {"Confirm"}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <DialogContent size="4xl">
+                  <DialogHeader>
+                    <DialogTitle className="text-base font-medium ">
+                      Detail Report
+                    </DialogTitle>
+                  </DialogHeader>
+
+                  <div className="flex justify-center gap-x-12 mt-2 text-sm text-default-500 space-y-4">
+                    {detailSOS.type === "image" ? (
+                      <Image
+                        className="w-56 object-cover"
+                        src={detailSOS.media}
+                        alt="image"
+                        width={500}
+                        height={500}
+                      />
+                    ) : (
+                      <Player
+                        src={row.media}
+                        style={{ width: "30rem", height: "20rem" }}
+                      />
+                    )}
+                    <div className="flex flex-col gap-y-4">
+                      <div className="flex flex-col gap-y-2">
+                        <p className="text-muted-foreground text-sm">Name</p>
+                        <p className="text-sm text-default-900">
+                          {detailSOS.sender?.name}
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-y-2">
+                        <p className="text-muted-foreground text-sm">
+                          Location
+                        </p>
+                        <Link
+                          className="flex-1 block"
+                          href={`https://www.google.com/maps/search/?api=1&query=${row.lat}%2C${row.lng}`}
+                          target="_blank"
+                        >
+                          <p className="text-sm text-blue-700">
+                            {detailSOS.location || "-"}
+                          </p>
+                        </Link>
+                      </div>
+                      <div className="flex flex-col gap-y-2">
+                        <p className="text-muted-foreground text-sm">Time</p>
+                        <p className="text-sm text-default-900">{`${detailSOS.time} WIB`}</p>
+                      </div>
+                      <div className="flex flex-col gap-y-2">
+                        <p className="text-muted-foreground text-sm">Status</p>
+                        <Badge
+                          color={
+                            row.is_confirm && row.is_finish
+                              ? "success"
+                              : row.is_confirm && !row.is_finish
+                              ? "info"
+                              : "warning"
+                          }
+                          className="w-fit"
+                        >
+                          {row.is_confirm && row.is_finish
+                            ? "Finished"
+                            : row.is_confirm && !row.is_finish
+                            ? "On Process"
+                            : "Waiting Confirm"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter className="mt-8 gap-2">
+                    <DialogClose asChild>
+                      <Button type="button" variant="outline" color="warning">
+                        Close
+                      </Button>
+                    </DialogClose>
+
+                    {detailSOS.is_confirm && detailSOS.is_finish ? (
+                      <Link
+                        className=""
+                        href={{
+                          pathname: "/list-reporting/chat",
+                          query: {
+                            id: row.chat_id,
+                            sender: row.sender.id,
+                          },
+                        }}
+                      >
+                        <Button
+                          className="exclude-element"
+                          // onClick={(event) => confirmSOS(event, row.id)}
+                          // disabled={row.is_confirm}
+                        >
+                          {"Show Chat"}
+                        </Button>
+                      </Link>
+                    ) : detailSOS.is_confirm && !detailSOS.is_finish ? (
+                      <Link
+                        className=""
+                        href={`/list-reporting/chat?id=${detailSOS.chat_id}&sos=${detailSOS.id}&sender=${detailSOS.sender.id}`}
+                      >
+                        <Button
+                          className="exclude-element"
+                          // onClick={(event) => confirmSOS(event, row.id)}
+                          // disabled={row.is_confirm}
+                        >
+                          {"Show Chat"}
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button
+                        className="exclude-element"
+                        onClick={(event) => confirmSOS(event, detailSOS.id)}
+                        // disabled={row.is_confirm}
+                      >
+                        {"Confirm"}
+                      </Button>
+                    )}
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            );
+          })
+        ) : (
+          <div className=" font-medium text-default-500">
+            I'm Sorry, Reports Not Found
           </div>
-        </>
-      )}
+        )}
+      </div>
     </>
+    //   )}
+    // </>
   );
 }
 

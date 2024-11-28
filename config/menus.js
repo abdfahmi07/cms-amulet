@@ -1027,7 +1027,7 @@ export const menusConfig = {
       //   ],
       // },
       {
-        title: "Monitoring",
+        title: "Main Menu",
         icon: PretentionChartLine2,
         child: [
           {
@@ -1035,21 +1035,21 @@ export const menusConfig = {
             href: "/list-reporting",
             icon: ClipBoard2,
           },
-          {
-            title: "Early Warning System",
-            href: "/ews",
-            icon: Flag,
-          },
-          {
-            title: "News",
-            href: "/news",
-            icon: Files,
-          },
-          {
-            title: "Itineraries",
-            href: "/itineraries",
-            icon: Calendar,
-          },
+          // {
+          //   title: "Early Warning System",
+          //   href: "/ews",
+          //   icon: Flag,
+          // },
+          // {
+          //   title: "News",
+          //   href: "/news",
+          //   icon: Files,
+          // },
+          // {
+          //   title: "Itineraries",
+          //   href: "/itineraries",
+          //   icon: Calendar,
+          // },
           // {
           //   title: "Project ",
           //   href: "/project",

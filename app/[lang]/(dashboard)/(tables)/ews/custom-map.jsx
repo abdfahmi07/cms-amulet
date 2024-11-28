@@ -14,7 +14,6 @@ const mapOption = {
 };
 
 const CustomMap = ({ markerPosition, handleMarkerPosition, detailEWS }) => {
-  console.log(detailEWS, "detail");
   const [map, setMap] = useState(null);
   const [center, setCenter] = useState({});
   const inputRef = useRef(null);
@@ -54,16 +53,20 @@ const CustomMap = ({ markerPosition, handleMarkerPosition, detailEWS }) => {
         (position) => {
           const { latitude, longitude } = position.coords;
           const latLng = { lat: latitude, lng: longitude };
-          setCenter(latLng);
 
           if (
             Object.keys(detailEWS).length !== 0 &&
             detailEWS.lat !== "-" &&
             detailEWS.lng !== "-"
           ) {
-            console.log(detailEWS);
-            handleMarkerPosition({ lat: detailEWS.lat, lng: detailEWS.lng });
+            const latLngFromDetail = {
+              lat: Number(detailEWS.lat),
+              lng: Number(detailEWS.lng),
+            };
+            handleMarkerPosition(latLngFromDetail);
+            setCenter(latLngFromDetail);
           } else {
+            setCenter(latLng);
             handleMarkerPosition(latLng);
           }
         },

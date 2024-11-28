@@ -190,9 +190,9 @@ export function NewsList() {
                     </DialogTitle>
                   </DialogHeader>
 
-                  <div className="flex gap-x-12 mt-2 text-sm text-default-500 space-y-4">
+                  <div className="flex flex-col gap-x-12 mt-2 text-sm text-default-500 space-y-4">
                     <Image
-                      className="w-56 object-cover"
+                      className="w-96 object-cover rounded-lg"
                       src={detailNews.img}
                       alt="image"
                       width={500}

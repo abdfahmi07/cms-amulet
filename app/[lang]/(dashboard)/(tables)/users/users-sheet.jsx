@@ -12,7 +12,6 @@ import { cn, formatDate } from "@/lib/utils";
 import { addProjectAction, editProjectAction } from "@/action/project-action";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar as CalendarIcon } from "lucide-react";
-
 import {
   Sheet,
   SheetClose,
@@ -38,35 +37,27 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import axios from "axios";
-import BasicMap from "./basic-map";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import "./style/custom.css";
-import CustomMap from "./custom-map";
 
 const wait = () => new Promise((resolve) => setTimeout(resolve, 1000));
 
 const schema = z.object({
+  email: z
+    .string()
+    .min(1, { message: "Email is required" })
+    .email("Invalid email format"),
   title: z.string().min(1, { message: "Title is required" }),
   description: z.string().min(1, { message: "Description is required" }),
 });
 
-const EWSSheet = ({ open, getListEWS, detailEWS, onClose, selectedId }) => {
+const UsersSheet = ({ open, getListNews, detailNews, onClose, selectedId }) => {
   const [priority, setPriority] = React.useState(null);
   const [assign, setAssign] = React.useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [isPending, startTransition] = useTransition();
   const [file, setFile] = useState(null);
-  const [markerPosition, setMarkerPosition] = useState({});
 
   const {
     register,
@@ -83,10 +74,10 @@ const EWSSheet = ({ open, getListEWS, detailEWS, onClose, selectedId }) => {
     reset();
   };
 
-  const updateEWS = async (payloads) => {
+  const updateNews = async (payloads) => {
     try {
       await axios.put(
-        `https://api-rakhsa.inovatiftujuh8.com/api/v1/news/${detailEWS.id}`,
+        `https://api-rakhsa.inovatiftujuh8.com/api/v1/news/${detailNews.id}`,
         payloads
       );
     } catch (err) {
@@ -94,10 +85,10 @@ const EWSSheet = ({ open, getListEWS, detailEWS, onClose, selectedId }) => {
     }
   };
 
-  const updateEWSImage = async (payloads) => {
+  const updateNewsImage = async (payloads) => {
     try {
       await axios.put(
-        `https://api-rakhsa.inovatiftujuh8.com/api/v1/news/update-image/${detailEWS.id}`,
+        `https://api-rakhsa.inovatiftujuh8.com/api/v1/news/update-image/${detailNews.id}`,
         payloads
       );
     } catch (err) {
@@ -117,34 +108,34 @@ const EWSSheet = ({ open, getListEWS, detailEWS, onClose, selectedId }) => {
   };
 
   const onSubmit = (data) => {
-    const updatedEWS = {
+    const updatedNews = {
       title: data.title,
       description: data.description,
-      lat: markerPosition.lat.toString(),
-      lng: markerPosition.lng.toString(),
+      lat: "-",
+      lng: "-",
     };
 
-    const addedEWS = {
+    const addedNews = {
       title: data.title,
       description: data.description,
       img: file.path,
-      type: "ews",
-      lat: markerPosition.lat.toString(),
-      lng: markerPosition.lng.toString(),
+      type: "news",
+      lat: "-",
+      lng: "-",
     };
 
-    if (Object.keys(detailEWS).length !== 0) {
+    if (Object.keys(detailNews).length !== 0) {
       startTransition(async () => {
-        await updateEWS(updatedEWS);
-        await updateEWSImage({ img: file.path || detailEWS.img });
+        await updateNews(updatedNews);
+        await updateNewsImage({ img: file.path || detailNews.img });
         toast.success("Successfully Update");
-        getListEWS();
+        getListNews();
       });
     } else {
       startTransition(async () => {
-        await createEWS(addedEWS);
+        await createEWS(addedNews);
         toast.success("Successfully Added");
-        getListEWS();
+        getListNews();
       });
     }
 
@@ -154,9 +145,9 @@ const EWSSheet = ({ open, getListEWS, detailEWS, onClose, selectedId }) => {
   };
 
   useEffect(() => {
-    setFile(detailEWS?.img ? { preview: detailEWS?.img } : null);
-    setValue("title", detailEWS?.title || "");
-    setValue("description", detailEWS?.desc || "");
+    setFile(detailNews?.img ? { preview: detailNews?.img } : null);
+    setValue("title", detailNews?.title || "");
+    setValue("description", detailNews?.desc || "");
   }, [open]);
 
   const uploadMedia = async (file) => {
@@ -185,8 +176,6 @@ const EWSSheet = ({ open, getListEWS, detailEWS, onClose, selectedId }) => {
     });
   };
 
-  // console.log(detailEWS);
-
   return (
     <>
       <Sheet open={open}>
@@ -199,13 +188,12 @@ const EWSSheet = ({ open, getListEWS, detailEWS, onClose, selectedId }) => {
         >
           <SheetHeader className="px-0">
             <SheetTitle>
-              {Object.keys(detailEWS).length !== 0 ? "Edit " : "Create"} Early
-              Warning System
+              {Object.keys(detailNews).length !== 0 ? "Edit " : "Create"} News
             </SheetTitle>
           </SheetHeader>
           <ScrollArea className="h-[calc(100%-40px)]">
             <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="space-y-4 mt-6">
+              <div className="space-y-4  mt-6">
                 <div className="flex flex-col gap-4">
                   <Label htmlFor="thumbnail" className="mb-1.5">
                     Thumbnail
@@ -264,7 +252,7 @@ const EWSSheet = ({ open, getListEWS, detailEWS, onClose, selectedId }) => {
                   />
                 </div>
                 {errors.title && (
-                  <div className="text-destructive mt-2">
+                  <div className=" text-destructive mt-2">
                     {errors.title.message}
                   </div>
                 )}
@@ -283,53 +271,8 @@ const EWSSheet = ({ open, getListEWS, detailEWS, onClose, selectedId }) => {
                     {errors.description.message}
                   </div>
                 )}
-                <div className="">
-                  <Label htmlFor="location" className="mb-1.5">
-                    Location
-                  </Label>
-                  <div>
-                    <CustomMap
-                      handleMarkerPosition={setMarkerPosition}
-                      markerPosition={markerPosition}
-                      detailEWS={detailEWS}
-                    />
-                    {/* <BasicMap
-                      handleMarkerPosition={setMarkerPosition}
-                      markerPosition={markerPosition}
-                      map={map}
-                      handleSetMap={setMap}
-                    /> */}
-                    {/* <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          color="transparent"
-                          className="text-primary p-0"
-                        >
-                          Open map for location
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent size="xl">
-                        <DialogHeader>
-                          <DialogTitle className="text-base font-medium text-default-700 ">
-                            Search location on map
-                          </DialogTitle>
-                        </DialogHeader>
-                        <div className="text-sm text-default-500">
-                          <BasicMap />
-                        </div>
-                        <DialogFooter className="mt-8">
-                          <DialogClose asChild>
-                            <Button variant="outline" color="warning">
-                              Close
-                            </Button>
-                          </DialogClose>
-                          <Button>Save</Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog> */}
-                  </div>
-                </div>
               </div>
+
               <div className="mt-12 flex gap-6">
                 <Button
                   type="button"
@@ -345,10 +288,10 @@ const EWSSheet = ({ open, getListEWS, detailEWS, onClose, selectedId }) => {
                 </Button>
 
                 <Button type="submit" disabled={isPending} className="flex-1">
-                  {Object.keys(detailEWS).length !== 0
+                  {Object.keys(detailNews).length !== 0
                     ? "Update"
                     : "  Create  "}{" "}
-                  Early Warning System
+                  News
                 </Button>
               </div>
             </form>
@@ -359,4 +302,4 @@ const EWSSheet = ({ open, getListEWS, detailEWS, onClose, selectedId }) => {
   );
 };
 
-export default EWSSheet;
+export default UsersSheet;

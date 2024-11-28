@@ -107,6 +107,8 @@ const NewsSheet = ({ open, getListNews, detailNews, onClose, selectedId }) => {
     const updatedNews = {
       title: data.title,
       description: data.description,
+      lat: "-",
+      lng: "-",
     };
 
     const addedNews = {
@@ -114,6 +116,8 @@ const NewsSheet = ({ open, getListNews, detailNews, onClose, selectedId }) => {
       description: data.description,
       img: file.path,
       type: "news",
+      lat: "-",
+      lng: "-",
     };
 
     if (Object.keys(detailNews).length !== 0) {

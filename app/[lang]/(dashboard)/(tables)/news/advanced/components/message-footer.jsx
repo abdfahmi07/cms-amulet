@@ -44,8 +44,6 @@ const MessageFooter = ({ handleSendMessage, replay, setReply, replayData }) => {
     handleSendMessage(message);
     setReply(false);
     setMessage("");
-
-    console.log(replay, message, "ami k");
   };
   return (
     <>

@@ -86,11 +86,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast as sonnerToast } from "sonner";
 
 export function ChatPage() {
-  const [rows, setRows] = React.useState([]);
-  const [socket, setSocket] = React.useState(null);
-  const [confirmSOSData, setConfirmSOSData] = React.useState({});
   const user = localStorage.getItem("user")
     ? JSON.parse(localStorage.getItem("user"))
     : null;
@@ -98,8 +96,12 @@ export function ChatPage() {
   const [showContactSidebar, setShowContactSidebar] = React.useState(false);
   const [showInfo, setShowInfo] = React.useState(false);
   const queryClient = useQueryClient();
-  const getMessagesCallback = React.useCallback(
+  const getMessagesDefaultCallback = React.useCallback(
     (chatData) => getMessagesDefault(chatData),
+    []
+  );
+  const getMessagesCallback = React.useCallback(
+    (chatId) => getMessages({ chat_id: chatId }),
     []
   );
   const [replay, setReply] = React.useState(false);
@@ -107,11 +109,17 @@ export function ChatPage() {
   const [isOpenSearch, setIsOpenSearch] = React.useState(false);
   const [pinnedMessages, setPinnedMessages] = React.useState([]);
   const [isForward, setIsForward] = React.useState(false);
-  // const router = useRouter();
+  const router = useRouter();
   // const { name } = router.query;
   const searchParams = useSearchParams();
   const chatId = searchParams.get("id");
   const senderId = searchParams.get("sender");
+  const sosId = searchParams.get("sos");
+  const ws = React.useRef(null);
+  const pingInterval = React.useRef(null);
+  const [endSessionBtnText, setEndSessionBtnText] = React.useState(
+    "Offer to End the Session"
+  );
 
   const {
     isLoading,
@@ -133,13 +141,16 @@ export function ChatPage() {
     refetch: refetchMessage,
   } = useQuery({
     queryKey: ["message", chatId, senderId],
-    queryFn: () => getMessagesCallback({ chatId, senderId }),
+    queryFn: () =>
+      !sosId
+        ? getMessagesDefaultCallback({ chatId, senderId })
+        : getMessagesCallback(chatId),
     keepPreviousData: true,
   });
 
   const sendMessageWS = (message) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(
         JSON.stringify({
           type: "message",
           chat_id: chatId,
@@ -264,9 +275,9 @@ export function ChatPage() {
     setIsForward(!isForward);
   };
 
-  const join = (socket) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(
+  const join = () => {
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(
         JSON.stringify({
           type: "join",
           user_id: user.user.id,
@@ -275,78 +286,86 @@ export function ChatPage() {
     }
   };
 
+  const offerToEndChatSession = () => {
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(
+        JSON.stringify({
+          type: "finish-sos",
+          sos_id: sosId,
+        })
+      );
+    }
+  };
+
+  const startPing = () => {
+    pingInterval.current = setInterval(() => {
+      if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+        ws.current.send(
+          JSON.stringify({
+            type: "ping",
+          })
+        );
+        console.log("Sent: ping");
+      }
+    }, 5000);
+  };
+
+  // Clear the ping timer
+  const stopPing = () => {
+    if (pingInterval.current) {
+      clearInterval(pingInterval.current);
+      pingInterval.current = null;
+    }
+  };
+
   React.useEffect(() => {
     const connectWs = () => {
-      const ws = new WebSocket("wss://websockets-rakhsa.inovatiftujuh8.com");
+      ws.current = new WebSocket("wss://websockets-rakhsa.inovatiftujuh8.com");
 
-      ws.onopen = () => {
+      ws.current.onopen = () => {
         console.log("Connected to WebSocket");
-        setSocket(ws);
-        join(ws);
+        join();
+        startPing();
       };
 
-      ws.onmessage = (event) => {
+      ws.current.onmessage = (event) => {
         const parsedData = JSON.parse(event.data);
-
-        console.log(parsedData);
-        if (parsedData.type === "sos") {
-          setRows((prevRows) => [
-            ...prevRows,
-            {
-              id: parsedData.id,
-              location: parsedData.location,
-              time: parsedData.time,
-              lat: parsedData.lat,
-              lng: parsedData.lng,
-              country: parsedData.country,
-              media: parsedData.media,
-              is_confirm: false,
-              sender: {
-                id: "-",
-                name: parsedData.username,
-              },
-              type: parsedData.media_type,
-              agent: {
-                id: "-",
-                name: "-",
-                kbri: {
-                  continent: {
-                    name: "-",
-                  },
-                },
-              },
-            },
-          ]);
-        }
-
-        if (parsedData.type === "confirm-sos") {
-          // setIsConfirmReport(parsedData.is_confirm);
-          setConfirmSOSData(parsedData);
-          queryClient.fetchQuery(["message"], () =>
-            getMessagesCallback(parsedData)
-          );
-        }
 
         if (parsedData.type === "message") {
           messageMutation.mutate(parsedData);
         }
+
+        //         if(parsedData.type === 'finish-sos') {
+        // setEndSessionBtnText('')
+        //         }
+
+        if (parsedData.type === "user-finish-sos") {
+          sonnerToast.warning(
+            "Sesi chat anda sudah diakhiri oleh user, setelah 3 detik anda akan diarahkan ke halaman utama"
+          );
+          setTimeout(() => {
+            router.push("/list-reporting");
+          }, "3000");
+        }
       };
 
-      ws.onclose = () => {
+      ws.current.onclose = () => {
         console.log("WebSocket connection closed");
+        stopPing();
       };
 
-      ws.onerror = (error) => {
+      ws.current.onerror = (error) => {
         console.error("WebSocket error:", error);
-        ws.close();
+        // ws.current.close();
       };
     };
 
     connectWs();
 
-    // return () => {
-    //   connectWs();
-    // };
+    return () => {
+      stopPing();
+      ws.current?.close();
+    };
   }, []);
 
   return (
@@ -356,14 +375,27 @@ export function ChatPage() {
           <div className="flex-1">
             <Card className="h-full flex flex-col ">
               <CardHeader className="flex-none mb-0">
-                <MessageHeader
-                  showInfo={showInfo}
-                  handleShowInfo={handleShowInfo}
-                  profile={chats?.recipient}
-                  mblChatHandler={() =>
-                    setShowContactSidebar(!showContactSidebar)
-                  }
-                />
+                {sosId ? (
+                  <MessageHeader
+                    showInfo={showInfo}
+                    handleShowInfo={handleShowInfo}
+                    profile={chats?.recipient}
+                    mblChatHandler={() =>
+                      setShowContactSidebar(!showContactSidebar)
+                    }
+                    offerToEndChatSession={offerToEndChatSession}
+                    endSessionBtnText={endSessionBtnText}
+                  />
+                ) : (
+                  <MessageHeader
+                    showInfo={showInfo}
+                    handleShowInfo={handleShowInfo}
+                    profile={chats?.recipient}
+                    mblChatHandler={() =>
+                      setShowContactSidebar(!showContactSidebar)
+                    }
+                  />
+                )}
               </CardHeader>
               {isOpenSearch && (
                 <SearchMessages handleSetIsOpenSearch={handleSetIsOpenSearch} />
@@ -409,14 +441,16 @@ export function ChatPage() {
                   />
                 </div>
               </CardContent>
-              {/* <CardFooter className="flex-none flex-col px-0 py-4 border-t border-border">
-                <MessageFooter
-                  handleSendMessage={handleSendMessage}
-                  replay={replay}
-                  setReply={setReply}
-                  replayData={replayData}
-                />
-              </CardFooter> */}
+              {sosId && (
+                <CardFooter className="flex-none flex-col px-0 py-4 border-t border-border">
+                  <MessageFooter
+                    handleSendMessage={handleSendMessage}
+                    replay={replay}
+                    setReply={setReply}
+                    replayData={replayData}
+                  />
+                </CardFooter>
+              )}
             </Card>
           </div>
 

@@ -198,7 +198,6 @@ export function EWSList() {
                               : "-"}
                           </p>
                         </div>
-
                         <div className="flex gap-x-3 mt-2">
                           {/* <Link
                             className="flex-1 block"
@@ -226,14 +225,14 @@ export function EWSList() {
                 </Card>
                 <DialogContent size="4xl">
                   <DialogHeader>
-                    <DialogTitle className="text-base font-medium ">
+                    <DialogTitle className="text-base font-medium">
                       Detail Early Warning System
                     </DialogTitle>
                   </DialogHeader>
 
-                  <div className="flex gap-x-8 mt-2 text-sm text-default-500 space-y-4">
+                  <div className="flex flex-col gap-x-8 mt-2 text-sm text-default-500 space-y-4">
                     <Image
-                      className="w-96 object-cover"
+                      className="w-96 object-cover rounded-lg"
                       src={detailEWS.img}
                       alt="image"
                       width={500}
@@ -254,6 +253,22 @@ export function EWSList() {
                           {detailEWS.desc}
                         </p>
                       </div>
+                      {/* {detailEWS.lat !== "-" && detailEWS.lng !== "-" && (
+                        <div className="flex">
+                          <Link
+                            className=""
+                            href={`https://www.google.com/maps/search/?api=1&query=${detailEWS.lat}%2C${detailEWS.lng}`}
+                            target="_blank"
+                          >
+                            <Button
+                              color="transparent"
+                              className="text-primary p-0"
+                            >
+                              Lihat Lokasi
+                            </Button>
+                          </Link>
+                        </div>
+                      )} */}
                     </div>
                   </div>
                   <DialogFooter className="mt-8 gap-2">
@@ -262,6 +277,15 @@ export function EWSList() {
                         Close
                       </Button>
                     </DialogClose>
+                    {detailEWS.lat !== "-" && detailEWS.lng !== "-" && (
+                      <Link
+                        className=""
+                        href={`https://www.google.com/maps/search/?api=1&query=${detailEWS.lat}%2C${detailEWS.lng}`}
+                        target="_blank"
+                      >
+                        <Button className="">Lihat Lokasi</Button>
+                      </Link>
+                    )}
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
