@@ -339,7 +339,10 @@ export function ChatPage() {
         // setEndSessionBtnText('')
         //         }
 
-        if (parsedData.type === "user-finish-sos") {
+        if (
+          parsedData.type === "user-finish-sos" &&
+          parsedData.sos_id === sosId
+        ) {
           sonnerToast.warning(
             "Sesi chat anda sudah diakhiri oleh user, setelah 3 detik anda akan diarahkan ke halaman utama"
           );
