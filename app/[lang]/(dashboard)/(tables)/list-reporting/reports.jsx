@@ -458,6 +458,11 @@ export function Reports() {
 
   const confirmSOS = (event, sosId) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      console.log("confirm-sos", {
+        type: "confirm-sos",
+        sos_id: sosId,
+        user_agent_id: user.user.id,
+      });
       ws.current.send(
         JSON.stringify({
           type: "confirm-sos",
@@ -534,15 +539,12 @@ export function Reports() {
       ws.current.onmessage = (event) => {
         const parsedData = JSON.parse(event.data);
 
-        console.log(parsedData);
-
         if (
           parsedData.type === "sos" &&
           parsedData.platform_type === "amulet"
         ) {
           setFilterValue("recent");
           setRows((prevRows) => [
-            ...prevRows,
             {
               id: parsedData.id,
               location: parsedData.location,
@@ -567,6 +569,7 @@ export function Reports() {
                 },
               },
             },
+            ...prevRows,
           ]);
         }
 
