@@ -584,9 +584,9 @@ export function Reports() {
           );
         }
 
-        if (parsedData.type === "message") {
-          messageMutation.mutate(parsedData);
-        }
+        // if (parsedData.type === "fetch-message") {
+        //   messageMutation.mutate(parsedData);
+        // }
       };
 
       ws.current.onclose = () => {
@@ -869,6 +869,7 @@ export function Reports() {
                             </Link>
                           ) : (
                             <Button
+                              type="button"
                               className="basis-6/12 exclude-element"
                               onClick={(event) => confirmSOS(event, row.id)}
                             >
@@ -967,6 +968,7 @@ export function Reports() {
                         }}
                       >
                         <Button
+                          type="button"
                           className="exclude-element"
                           // onClick={(event) => confirmSOS(event, row.id)}
                           // disabled={row.is_confirm}
@@ -980,6 +982,7 @@ export function Reports() {
                         href={`/list-reporting/chat?id=${detailSOS.chat_id}&sos=${detailSOS.id}&sender=${detailSOS.sender.id}`}
                       >
                         <Button
+                          type="button"
                           className="exclude-element"
                           // onClick={(event) => confirmSOS(event, row.id)}
                           // disabled={row.is_confirm}
@@ -989,6 +992,7 @@ export function Reports() {
                       </Link>
                     ) : (
                       <Button
+                        type="button"
                         className="exclude-element"
                         onClick={(event) => confirmSOS(event, detailSOS.id)}
                         // disabled={row.is_confirm}

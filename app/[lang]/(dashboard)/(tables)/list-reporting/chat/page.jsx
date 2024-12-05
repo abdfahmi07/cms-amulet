@@ -331,7 +331,7 @@ export function ChatPage() {
       ws.current.onmessage = (event) => {
         const parsedData = JSON.parse(event.data);
 
-        if (parsedData.type === "message") {
+        if (parsedData.type === "fetch-message") {
           messageMutation.mutate(parsedData);
         }
 
@@ -373,7 +373,7 @@ export function ChatPage() {
 
   return (
     <>
-      <div className="flex-1 ">
+      <div className="flex-1">
         <div className="flex space-x-5 h-full rtl:space-x-reverse">
           <div className="flex-1">
             <Card className="h-full flex flex-col ">
@@ -404,7 +404,7 @@ export function ChatPage() {
                 <SearchMessages handleSetIsOpenSearch={handleSetIsOpenSearch} />
               )}
 
-              <CardContent className=" !p-0 relative flex-1 overflow-y-auto">
+              <CardContent className="!p-0 relative flex-1 overflow-y-auto">
                 <div
                   className="h-full py-4 overflow-y-auto no-scrollbar"
                   ref={chatHeightRef}
