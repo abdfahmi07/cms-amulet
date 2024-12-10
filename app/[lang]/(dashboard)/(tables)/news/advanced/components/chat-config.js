@@ -14,7 +14,7 @@ export const getMessages = async (payloads) => {
   try {
     const { sosId } = payloads;
     const { data } = await axios.get(
-      `http://157.245.193.49:3800/api/v1/ticket/messages/${sosId}`,
+      `${process.env.NEXT_PUBLIC_BASE_URL_STAGING}/api/v1/ticket/messages/${sosId}`,
       {
         headers: {
           Authorization: `Bearer ${user.token}`,
