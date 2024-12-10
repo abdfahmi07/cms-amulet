@@ -10,15 +10,11 @@ export const getContacts = async () => {
   return response.data;
 };
 
-export const getMessages = async (data) => {
+export const getMessages = async (payloads) => {
   try {
-    const { chat_id, recipient_id, is_confirm } = data;
-    const response = await axios.post(
-      `https://api-rakhsa.inovatiftujuh8.com/api/v1/chat/messages`,
-      {
-        chat_id,
-        sender_id: user.user.id,
-      },
+    const { sosId } = payloads;
+    const { data } = await axios.get(
+      `http://157.245.193.49:3800/api/v1/ticket/messages/${sosId}`,
       {
         headers: {
           Authorization: `Bearer ${user.token}`,
@@ -26,8 +22,8 @@ export const getMessages = async (data) => {
       }
     );
 
-    console.log("Response from getMessages:", response.data);
-    return response.data.data;
+    console.log("Response from getMessages:", data.data);
+    return data.data;
   } catch (error) {
     console.error("Error fetching messages:", error);
     throw error;

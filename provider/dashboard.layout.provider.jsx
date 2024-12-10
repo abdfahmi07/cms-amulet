@@ -1,7 +1,7 @@
 "use client";
-import React from "react";
 import Header from "@/components/partials/header";
 import Sidebar from "@/components/partials/sidebar";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useSidebar, useThemeStore } from "@/store";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,13 +13,27 @@ import MobileSidebar from "@/components/partials/sidebar/mobile-sidebar";
 import HeaderSearch from "@/components/header-search";
 import { useMounted } from "@/hooks/use-mounted";
 import LayoutLoader from "@/components/layout-loader";
+import { getSocket } from "../config/socket-io";
+
 const DashBoardLayoutProvider = ({ children, trans }) => {
   const { collapsed, sidebarType, setCollapsed, subMenu } = useSidebar();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
   const { layout } = useThemeStore();
   const location = usePathname();
   const isMobile = useMediaQuery("(min-width: 768px)");
   const mounted = useMounted();
+  const socket = getSocket();
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      socket.emit("init:guard:listenLiveTickets");
+    });
+  }, []);
+
+  // useEffect(() => {
+  //   socket.emit("init:guard:listenLiveTickets");
+  // }, []);
+
   if (!mounted) {
     return <LayoutLoader />;
   }

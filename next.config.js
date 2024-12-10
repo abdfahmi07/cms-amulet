@@ -6,6 +6,7 @@ const nextConfig = {
   env: {
     NEXTAUTH_URL: "http://localhost:3000",
   },
+  reactStrictMode: false,
   webpack(config) {
     // Grab the existing rule that handles SVG imports
     const fileLoaderRule = config.module.rules.find((rule) =>
@@ -62,6 +63,10 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "encrypted-tbn0.gstatic.com",
+      },
+      {
+        protocol: "https",
+        hostname: "media.rahmadfani.cloud",
       },
     ],
   },

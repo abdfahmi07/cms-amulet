@@ -86,6 +86,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getSocket } from "@/config/socket-io";
 import { toast as sonnerToast } from "sonner";
 
 export function ChatPage() {
@@ -101,25 +102,24 @@ export function ChatPage() {
     []
   );
   const getMessagesCallback = React.useCallback(
-    (chatId) => getMessages({ chat_id: chatId }),
+    (sosId) => getMessages({ sosId }),
     []
   );
   const [replay, setReply] = React.useState(false);
   const [replayData, setReplyData] = React.useState({});
+  const [isShowInputMessage, setIsShowInputMessage] = React.useState(true);
   const [isOpenSearch, setIsOpenSearch] = React.useState(false);
   const [pinnedMessages, setPinnedMessages] = React.useState([]);
   const [isForward, setIsForward] = React.useState(false);
   const router = useRouter();
   // const { name } = router.query;
   const searchParams = useSearchParams();
-  const chatId = searchParams.get("id");
-  const senderId = searchParams.get("sender");
-  const sosId = searchParams.get("sos");
+  const sosId = searchParams.get("id");
   const ws = React.useRef(null);
   const pingInterval = React.useRef(null);
-  const [endSessionBtnText, setEndSessionBtnText] = React.useState(
-    "Offer to End the Session"
-  );
+  const [endSessionBtnText, setEndSessionBtnText] =
+    React.useState("Close Report");
+  const socket = getSocket();
 
   const {
     isLoading,
@@ -140,63 +140,50 @@ export function ChatPage() {
     error: messageError,
     refetch: refetchMessage,
   } = useQuery({
-    queryKey: ["message", chatId, senderId],
-    queryFn: () =>
-      !sosId
-        ? getMessagesDefaultCallback({ chatId, senderId })
-        : getMessagesCallback(chatId),
+    queryKey: ["message"],
+    queryFn: () => getMessagesCallback(sosId),
     keepPreviousData: true,
   });
 
   const sendMessageWS = (message) => {
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(
-        JSON.stringify({
-          type: "message",
-          chat_id: chatId,
-          sender: user.user.id,
-          recipient: senderId,
-          text: message,
-        })
-      );
+    try {
+      socket.emit("send:ticketMessage", {
+        ticket_id: sosId,
+        message: message,
+        sender: chats.Staff,
+      });
+    } catch (err) {
+      console.log(err);
     }
   };
 
   const messageMutation = useMutation({
-    mutationFn: sendMessageWS,
+    mutationFn: refetchMessage,
     onSuccess: () => {
-      queryClient.invalidateQueries("messages");
+      // refetchMessage();
+      // queryClient.invalidateQueries("messages");
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteMessage,
-    onSuccess: () => {
-      queryClient.invalidateQueries("messages");
-    },
-  });
+  React.useEffect(() => {
+    socket.on("listen:ticketMessage", (data) => {
+      console.log(data);
+      messageMutation.mutate(data);
+    });
+  }, []);
 
-  const onDelete = (selectedChatId, index) => {
-    const obj = { selectedChatId, index };
-    deleteMutation.mutate(obj);
-
-    // Remove the deleted message from pinnedMessages if it exists
-    const updatedPinnedMessages = pinnedMessages.filter(
-      (msg) => msg.selectedChatId !== selectedChatId && msg.index !== index
-    );
-
-    setPinnedMessages(updatedPinnedMessages);
-  };
-
-  const handleShowInfo = () => {
-    setShowInfo(!showInfo);
-  };
+  React.useEffect(() => {
+    socket.on("connect", () => {
+      socket.emit("join:ticketRoom", sosId);
+    });
+  }, []);
 
   const handleSendMessage = (message) => {
     if (!message) return;
 
     sendMessageWS(message);
   };
+
   const chatHeightRef = React.useRef(null);
 
   // replay message
@@ -216,7 +203,7 @@ export function ChatPage() {
         behavior: "smooth",
       });
     }
-  }, [handleSendMessage, contacts]);
+  }, [handleSendMessage]);
 
   React.useEffect(() => {
     if (chatHeightRef.current) {
@@ -226,13 +213,6 @@ export function ChatPage() {
       });
     }
   }, [pinnedMessages]);
-
-  // handle search bar
-
-  const handleSetIsOpenSearch = () => {
-    setIsOpenSearch(!isOpenSearch);
-  };
-  // handle pin note
 
   const handlePinMessage = (note) => {
     const updatedPinnedMessages = [...pinnedMessages];
@@ -275,100 +255,33 @@ export function ChatPage() {
     setIsForward(!isForward);
   };
 
-  const join = () => {
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(
-        JSON.stringify({
-          type: "join",
-          user_id: user.user.id,
-        })
-      );
-    }
-  };
-
-  const offerToEndChatSession = () => {
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(
-        JSON.stringify({
-          type: "finish-sos",
-          sos_id: sosId,
-        })
-      );
-    }
-  };
-
-  const startPing = () => {
-    pingInterval.current = setInterval(() => {
-      if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-        ws.current.send(
-          JSON.stringify({
-            type: "ping",
-          })
-        );
-        console.log("Sent: ping");
-      }
-    }, 5000);
-  };
-
-  // Clear the ping timer
-  const stopPing = () => {
-    if (pingInterval.current) {
-      clearInterval(pingInterval.current);
-      pingInterval.current = null;
-    }
-  };
-
   React.useEffect(() => {
-    const connectWs = () => {
-      ws.current = new WebSocket("wss://websockets-rakhsa.inovatiftujuh8.com");
-
-      ws.current.onopen = () => {
-        console.log("Connected to WebSocket");
-        join();
-        startPing();
-      };
-
-      ws.current.onmessage = (event) => {
-        const parsedData = JSON.parse(event.data);
-
-        if (parsedData.type === "fetch-message") {
-          messageMutation.mutate(parsedData);
-        }
-
-        //         if(parsedData.type === 'finish-sos') {
-        // setEndSessionBtnText('')
-        //         }
-
-        if (
-          parsedData.type === "user-finish-sos" &&
-          parsedData.sos_id === sosId
-        ) {
-          sonnerToast.warning(
-            "Sesi chat anda sudah diakhiri oleh user, setelah 3 detik anda akan diarahkan ke halaman utama"
-          );
-          setTimeout(() => {
-            router.push("/list-reporting");
-          }, "3000");
-        }
-      };
-
-      ws.current.onclose = () => {
-        console.log("WebSocket connection closed");
-        stopPing();
-      };
-
-      ws.current.onerror = (error) => {
-        console.error("WebSocket error:", error);
-        // ws.current.close();
-      };
-    };
-
-    connectWs();
+    socket.emit("join:ticketRoom", sosId);
 
     return () => {
-      stopPing();
-      ws.current?.close();
+      socket.emit("leave:ticketRoom", sosId);
     };
+  }, []);
+
+  React.useEffect(() => {
+    socket.on("listen:ticketClosed", (data) => {
+      console.log(data, "data resolved");
+      setIsShowInputMessage(
+        !data.status === "Closed" || !data.status === "Resolved"
+      );
+      sonnerToast.warning(
+        `Sesi chat anda telah ${
+          data.status === "Resolved" ? "diakhiri oleh user" : "berakhir"
+        }, setelah 3 detik anda akan diarahkan ke halaman utama`
+      );
+      setTimeout(() => {
+        router.push("/list-reporting");
+      }, "3000");
+    });
+  }, []);
+
+  React.useState(() => {
+    socket.on("listen:");
   }, []);
 
   return (
@@ -381,28 +294,22 @@ export function ChatPage() {
                 {sosId ? (
                   <MessageHeader
                     showInfo={showInfo}
-                    handleShowInfo={handleShowInfo}
-                    profile={chats?.recipient}
+                    profile={chats?.User?.profile}
                     mblChatHandler={() =>
                       setShowContactSidebar(!showContactSidebar)
                     }
-                    offerToEndChatSession={offerToEndChatSession}
-                    endSessionBtnText={endSessionBtnText}
+                    sosId={sosId}
                   />
                 ) : (
                   <MessageHeader
                     showInfo={showInfo}
-                    handleShowInfo={handleShowInfo}
-                    profile={chats?.recipient}
+                    profile={chats?.User?.profile}
                     mblChatHandler={() =>
                       setShowContactSidebar(!showContactSidebar)
                     }
                   />
                 )}
               </CardHeader>
-              {isOpenSearch && (
-                <SearchMessages handleSetIsOpenSearch={handleSetIsOpenSearch} />
-              )}
 
               <CardContent className="!p-0 relative flex-1 overflow-y-auto">
                 <div
@@ -416,25 +323,21 @@ export function ChatPage() {
                       {messageIsError ? (
                         <EmptyMessage />
                       ) : (
-                        chats?.messages
-                          ?.slice()
-                          ?.reverse()
-                          ?.map((message, i) => (
-                            <Messages
-                              key={`message-list-${i}`}
-                              message={message}
-                              contact={chats?.recipient}
-                              profile={chats?.recipient}
-                              onDelete={onDelete}
-                              index={i}
-                              selectedChatId={selectedChatId}
-                              handleReply={handleReply}
-                              replayData={replayData}
-                              handleForward={handleForward}
-                              handlePinMessage={handlePinMessage}
-                              pinnedMessages={pinnedMessages}
-                            />
-                          ))
+                        chats?.messages?.map((message, i) => (
+                          <Messages
+                            key={`message-list-${i}`}
+                            message={message}
+                            contact={chats?.User?.profile}
+                            profile={chats?.User?.profile}
+                            index={i}
+                            selectedChatId={selectedChatId}
+                            handleReply={handleReply}
+                            replayData={replayData}
+                            handleForward={handleForward}
+                            handlePinMessage={handlePinMessage}
+                            pinnedMessages={pinnedMessages}
+                          />
+                        ))
                       )}
                     </>
                   )}
@@ -444,7 +347,7 @@ export function ChatPage() {
                   />
                 </div>
               </CardContent>
-              {sosId && (
+              {isShowInputMessage && (
                 <CardFooter className="flex-none flex-col px-0 py-4 border-t border-border">
                   <MessageFooter
                     handleSendMessage={handleSendMessage}
@@ -456,16 +359,6 @@ export function ChatPage() {
               )}
             </Card>
           </div>
-
-          {showInfo && (
-            <ContactInfo
-              handleSetIsOpenSearch={handleSetIsOpenSearch}
-              handleShowInfo={handleShowInfo}
-              contact={contacts?.contacts?.find(
-                (contact) => contact.id === selectedChatId
-              )}
-            />
-          )}
         </div>
       </div>
     </>

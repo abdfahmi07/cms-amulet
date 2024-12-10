@@ -13,6 +13,11 @@ import { Undo2 } from "lucide-react";
 import Image from "next/image";
 import { CheckCheck, Check } from "lucide-react";
 import defaultUser from "@/public/images/avatar/default-user.png";
+import moment from "moment";
+
+const user = localStorage.getItem("user")
+  ? JSON.parse(localStorage.getItem("user"))
+  : null;
 
 const chatAction = [
   {
@@ -35,18 +40,16 @@ const Messages = ({
   handleReply,
   replayData,
   handleForward,
-
   handlePinMessage,
   pinnedMessages,
 }) => {
   const {
-    chat_id: chatId,
-    text: chatMessage,
-    sent_time: time,
-    user,
-    is_read: isRead,
+    message: chatMessage,
+    created_at: time,
+    sender_id: senderId,
+    is_read: isRead = true,
   } = message;
-  const { avatar } = contact;
+  const { photo_url: avatar } = contact;
   // State to manage pin status
   const isMessagePinned = pinnedMessages.some(
     (pinnedMessage) => pinnedMessage.index === index
@@ -64,7 +67,7 @@ const Messages = ({
   return (
     <>
       <div className="block md:px-6 px-0">
-        {user.is_me ? (
+        {senderId === user.id ? (
           <>
             {/* {replayMetadata === true && (
               <div className="w-max ml-auto -mb-2 mr-10">
@@ -121,16 +124,14 @@ const Messages = ({
                   </div>
                 </div>
                 <span className="text-xs text-end text-default-500">
-                  {time}
+                  {moment(time).format("HH:mm")}
                 </span>
               </div>
               <div className="flex-none self-end -translate-y-5">
                 <div className="h-8 w-8 rounded-full ">
                   <Image
-                    src={
-                      profile?.avatar === "-" ? defaultUser : profile?.avatar
-                    }
-                    alt={avatar === "-" ? "" : avatar}
+                    src={!profile?.photo_url ? defaultUser : profile?.photo_url}
+                    alt={!avatar ? "" : avatar}
                     className="block w-full h-full object-cover rounded-full"
                     width={100}
                     height={100}
@@ -144,8 +145,8 @@ const Messages = ({
             <div className="flex-none self-end -translate-y-5">
               <div className="h-8 w-8 rounded-full">
                 <Image
-                  src={avatar === "-" ? defaultUser : avatar}
-                  alt={avatar === "-" ? "" : avatar}
+                  src={!avatar ? defaultUser : avatar}
+                  alt={!avatar ? "" : avatar}
                   className="block w-full h-full object-cover rounded-full"
                   width={100}
                   height={100}
@@ -206,7 +207,9 @@ const Messages = ({
                     </DropdownMenu>
                   </div> */}
                 </div>
-                <span className="text-xs text-default-500">{time}</span>
+                <span className="text-xs text-default-500">
+                  {moment(time).format("HH:mm")}
+                </span>
               </div>
             </div>
           </div>

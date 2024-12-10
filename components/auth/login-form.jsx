@@ -22,7 +22,7 @@ import twitter from "@/public/images/auth/twitter.png";
 import GithubIcon from "@/public/images/auth/github.png";
 
 const schema = z.object({
-  value: z.string().min(1, { message: "Username/Email is required" }),
+  email: z.string().min(1, { message: "Email is required" }),
   password: z.string().min(1, { message: "Password is required" }),
 });
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -49,7 +49,7 @@ const LogInForm = () => {
     resolver: zodResolver(schema),
     mode: "all",
     defaultValues: {
-      value: "",
+      email: "",
       password: "",
     },
   });
@@ -61,9 +61,9 @@ const LogInForm = () => {
     startTransition(async () => {
       try {
         const { data: dataRes } = await axios.post(
-          `https://api-rakhsa.inovatiftujuh8.com/api/v1/auth/login`,
+          `${process.env.NEXT_PUBLIC_BASE_URL_STAGING}/api/v1/auth`,
           {
-            value: data.value,
+            email: data.email,
             password: data.password,
           }
         );
@@ -110,13 +110,13 @@ const LogInForm = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="mt-5 2xl:mt-7">
         <div>
           <Label htmlFor="value" className="mb-2 font-medium text-default-600">
-            Username/Email
+            Email
           </Label>
           <Input
             disabled={isPending}
-            {...register("value")}
-            type="value"
-            id="value"
+            {...register("email")}
+            type="text"
+            id="email"
             className={cn("", {
               "border-destructive": errors.value,
             })}
@@ -124,8 +124,8 @@ const LogInForm = () => {
             placeholder="johndoe@gmail.com"
           />
         </div>
-        {errors.value && (
-          <div className=" text-destructive mt-2">{errors.value.message}</div>
+        {errors.email && (
+          <div className=" text-destructive mt-2">{errors.email.message}</div>
         )}
 
         <div className="mt-3.5">
@@ -141,7 +141,7 @@ const LogInForm = () => {
               {...register("password")}
               type={passwordType}
               id="password"
-              className="peer "
+              className="peer"
               size={!isDesktop2xl ? "xl" : "lg"}
               placeholder="password"
             />

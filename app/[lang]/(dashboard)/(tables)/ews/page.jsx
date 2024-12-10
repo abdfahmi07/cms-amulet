@@ -4,7 +4,7 @@ import EWSList from "./ews-list";
 
 const EWSPage = () => {
   return (
-    <div className=" space-y-5">
+    <div className="space-y-5">
       {/* <Card>
         <CardHeader>
           <CardTitle>List Reporting</CardTitle>

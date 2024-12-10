@@ -63,3 +63,10 @@ export const useSidebar = create(
     }
   )
 );
+
+export const useReports = create(
+  persist((set) => ({
+    reports: [],
+    // setReport,
+  }))
+);
