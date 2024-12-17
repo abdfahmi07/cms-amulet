@@ -1,6 +1,7 @@
+import { API_BASE_URL } from "@/utils/constants";
 import axios from "axios";
 
-const baseURL = process.env.NEXT_BASE_URL_API + "/api"; // Change this if using a diffe // Change this if using a different backend API
+const baseURL = API_BASE_URL;
 
 export const api = axios.create({
   baseURL,

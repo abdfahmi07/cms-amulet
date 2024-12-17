@@ -124,7 +124,6 @@ const VerticalHeader = ({ handleOpenSearch }) => {
       <div className="flex items-center md:gap-6 gap-3">
         {LogoContent}
         {menuBarContent}
-        {searchButtonContent}
       </div>
     </>
   );

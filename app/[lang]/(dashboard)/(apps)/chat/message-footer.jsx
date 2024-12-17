@@ -229,7 +229,10 @@ const MessageFooter = ({ handleSendMessage, replay, setReply, replayData }) => {
                     <Annoyed className="w-6 h-6 text-primary" />
                   </span>
                 </PopoverTrigger>
-                <PopoverContent side="top" className="w-fit p-0 shadow-none border-none bottom-0 rtl:left-5 ltr:-left-[110px]">
+                <PopoverContent
+                  side="top"
+                  className="w-fit p-0 shadow-none border-none bottom-0 rtl:left-5 ltr:-left-[110px]"
+                >
                   <Picker
                     data={data}
                     onEmojiSelect={handleSelectEmoji}

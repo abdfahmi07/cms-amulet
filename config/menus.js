@@ -1031,8 +1031,8 @@ export const menusConfig = {
         icon: PretentionChartLine2,
         child: [
           {
-            title: "List Reporting",
-            href: "/list-reporting",
+            title: "Reports",
+            href: "/reports",
             icon: ClipBoard2,
           },
           // {

@@ -10,7 +10,7 @@ const ReportsPage = () => {
           <CardTitle>List Reporting</CardTitle>
         </CardHeader>
         <CardContent className="p-0"> */}
-      <Reports />
+      {/* <Reports /> */}
       {/* </CardContent>
       </Card> */}
 

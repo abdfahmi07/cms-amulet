@@ -64,9 +64,15 @@ export const useSidebar = create(
   )
 );
 
-// export const useReports = create(
-//   persist((set) => ({
-//     reports: [],
-//     // setReport: (),
-//   }))
-// );
+export const useReports = create(
+  persist(
+    (set) => ({
+      reports: [],
+      setReports: (reports) => set({ reports }),
+    }),
+    {
+      name: "reports-store", // name of the item in the storage (must be unique)
+      storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
+    }
+  )
+);

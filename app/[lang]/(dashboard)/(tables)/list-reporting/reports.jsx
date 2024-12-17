@@ -191,7 +191,6 @@ export function Reports() {
     }
   }, [handleSendMessage]);
 
-  console.log(rows);
   React.useEffect(() => {
     if (chatHeightRef.current) {
       chatHeightRef.current.scrollTo({
@@ -381,35 +380,35 @@ export function Reports() {
                             {row?.status}
                           </Badge>
                         </div>
-                        {(filterValue === "live" ||
+                        {/* {(filterValue === "live" ||
                           filterValue === "recent" ||
-                          filterValue === "on_process") && (
-                          <>
-                            <div className="flex flex-col gap-y-2">
-                              <p className="text-muted-foreground text-sm">
-                                Name
-                              </p>
-                              <p className="text-sm">
-                                {row?.User?.profile?.fullname}
-                              </p>
-                            </div>
-                            <div className="flex flex-col gap-y-2">
-                              <p className="text-muted-foreground text-sm">
-                                Location
-                              </p>
-                              <p className="text-sm">{row?.address}</p>
-                              {/* <p className="text-sm">{row?.id}</p> */}
-                            </div>
-                            <div className="flex flex-col gap-y-2">
-                              <p className="text-muted-foreground text-sm">
-                                Time
-                              </p>
-                              <p className="text-sm">{`${moment(
-                                row?.created_at
-                              ).format("DD/MM/YYYY HH:mm")} WIB`}</p>
-                            </div>
-                          </>
-                        )}
+                          filterValue === "on_process" ) && ( */}
+                        <>
+                          <div className="flex flex-col gap-y-2">
+                            <p className="text-muted-foreground text-sm">
+                              Name
+                            </p>
+                            <p className="text-sm">
+                              {row?.User?.profile?.fullname}
+                            </p>
+                          </div>
+                          <div className="flex flex-col gap-y-2">
+                            <p className="text-muted-foreground text-sm">
+                              Location
+                            </p>
+                            <p className="text-sm">{row?.address}</p>
+                            {/* <p className="text-sm">{row?.id}</p> */}
+                          </div>
+                          <div className="flex flex-col gap-y-2">
+                            <p className="text-muted-foreground text-sm">
+                              Time
+                            </p>
+                            <p className="text-sm">{`${moment(
+                              row?.created_at
+                            ).format("DD/MM/YYYY HH:mm")} WIB`}</p>
+                          </div>
+                        </>
+                        {/* )} */}
                         <div className="flex gap-x-3 mt-2">
                           <DialogTrigger
                             className="flex-1"

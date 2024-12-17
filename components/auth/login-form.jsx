@@ -21,6 +21,8 @@ import facebook from "@/public/images/auth/facebook.png";
 import twitter from "@/public/images/auth/twitter.png";
 import GithubIcon from "@/public/images/auth/github.png";
 
+import { API_BASE_URL } from "@/utils/constants";
+
 const schema = z.object({
   email: z.string().min(1, { message: "Email is required" }),
   password: z.string().min(1, { message: "Password is required" }),
@@ -60,17 +62,14 @@ const LogInForm = () => {
   const onSubmit = async (data) => {
     startTransition(async () => {
       try {
-        const { data: dataRes } = await axios.post(
-          `${process.env.NEXT_PUBLIC_BASE_URL_STAGING}/api/v1/auth`,
-          {
-            email: data.email,
-            password: data.password,
-          }
-        );
+        const { data: dataRes } = await axios.post(`${API_BASE_URL}/auth`, {
+          email: data.email,
+          password: data.password,
+        });
 
         toast.success("Login Successful");
         localStorage.setItem("user", JSON.stringify(dataRes.data));
-        window.location.assign("/list-reporting");
+        window.location.assign("/reports");
         reset();
       } catch (err) {
         toast.error("Login Invalid");
