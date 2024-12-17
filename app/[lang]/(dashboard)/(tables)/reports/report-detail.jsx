@@ -65,7 +65,7 @@ const ReportDetail = ({ reportDetailData, refetchReports }) => {
         </div>
         <div className="flex flex-col gap-y-2">
           <p className="text-muted-foreground text-sm">Name</p>
-          <p className="text-sm">{User?.profile?.fullname}</p>
+          <p className="text-sm capitalize">{User?.profile?.fullname}</p>
         </div>
         <div className="flex flex-col gap-y-2">
           <p className="text-muted-foreground text-sm">Location</p>

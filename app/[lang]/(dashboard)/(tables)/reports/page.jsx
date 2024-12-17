@@ -42,6 +42,7 @@ import { useReports } from "@/store";
 import { getSocket } from "@/config/socket-io";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { api } from "@/config/axios.config";
+import { Button } from "@/components/ui/button";
 
 const ChatPage = () => {
   const [selectedReportId, setSelectedReportId] = useState(null);
@@ -112,7 +113,7 @@ const ChatPage = () => {
     error: messageError,
     refetch: refetchMessage,
   } = useQuery({
-    queryKey: ["message", selectedReportId],
+    queryKey: ["message", selectedReportId, selectedReportStatus],
     queryFn: () => getMessagesCallback(selectedReportId),
     enabled: !!selectedReportId,
   });
@@ -141,7 +142,7 @@ const ChatPage = () => {
     setSelectedReportId(reportId);
     setReply(false);
 
-    socket.emit("join:ticketRoom", reportId)
+    socket.emit("join:ticketRoom", reportId);
     // await refetchReportDetail({
     //   queryFn: () => getReportDetail(reportId),
     // });
@@ -280,180 +281,186 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="flex gap-5 app-height  relative rtl:space-x-reverse">
-      {isLg && showContactSidebar && (
-        <div
-          className=" bg-background/60 backdrop-filter
-         backdrop-blur-sm absolute w-full flex-1 inset-0 z-[99] rounded-md"
-          onClick={() => setShowContactSidebar(false)}
-        ></div>
-      )}
-      {isLg && showInfo && (
-        <div
-          className=" bg-background/60 backdrop-filter
-         backdrop-blur-sm absolute w-full flex-1 inset-0 z-40 rounded-md"
-          onClick={() => setShowInfo(false)}
-        ></div>
-      )}
-      <div
-        className={cn("transition-all duration-150 flex-none  ", {
-          "absolute h-full top-0 md:w-[260px] w-[200px] z-[999]": isLg,
-          "flex-none min-w-[260px]": !isLg,
-          "left-0": isLg && showContactSidebar,
-          "-left-full": isLg && !showContactSidebar,
-        })}
-      >
-        <Card className="h-full pb-0">
-          <CardHeader className="border-none pb-0 mb-0">
-            <MyProfileHeader />
-          </CardHeader>
-          <CardContent className="pt-1 px-0 lg:h-[calc(100%-55px)] h-[calc(100%-70px)]">
-            <ScrollArea className="h-full">
-              {isLoading ? (
-                <Loader />
-              ) : (
-                listReport?.map((report) => (
-                  <ReportList
-                    key={report.id}
-                    report={report}
-                    selectedReportId={selectedReportId}
-                    openChat={openChat}
-                  />
-                ))
-              )}
-            </ScrollArea>
-          </CardContent>
-        </Card>
+    <div className="flex flex-col gap-y-3">
+      <div className="flex justify-end gap-x-2">
+        <Button type="button">Closed Case</Button>
+        <Button type="button">Resolved Case</Button>
       </div>
-
-      {selectedReportId ? (
-        <div className="flex-1 ">
-          <div className=" flex space-x-5 h-full rtl:space-x-reverse">
-            <div className="flex-1">
-              <Card className="h-full flex flex-col ">
-                <CardHeader className="flex-none mb-0">
-                  <MessageHeader
-                    showInfo={showInfo}
-                    handleShowInfo={handleShowInfo}
-                    mblChatHandler={() =>
-                      setShowContactSidebar(!showContactSidebar)
-                    }
-                    reportDetailData={reportDetailData ?? {}}
-                    setSelectedReportId={setSelectedReportId}
-                    refetchReports={refetchReports}
-                  />
-                </CardHeader>
-                {isOpenSearch && (
-                  <SearchMessages
-                    handleSetIsOpenSearch={handleSetIsOpenSearch}
-                  />
-                )}
-
-                <CardContent className="!p-0 relative flex-1 overflow-y-auto">
-                  {selectedReportStatus === "In Progress" ? (
-                    <div
-                      className="h-full py-4 overflow-y-auto no-scrollbar"
-                      ref={chatHeightRef}
-                    >
-                      {messageLoading ? (
-                        <Loader />
-                      ) : (
-                        <>
-                          {messageIsError ? (
-                            <EmptyMessage />
-                          ) : (
-                            <div className="">
-                              {reportDetailData?.note && (
-                                <Alert variant="soft" className="mb-6">
-                                  <AlertDescription>
-                                    Telah Ditangani Oleh :{" "}
-                                    <span className="font-medium">
-                                      {reportDetailData?.note}
-                                    </span>
-                                  </AlertDescription>
-                                </Alert>
-                              )}
-                              {chats?.messages?.map((message, i) => (
-                                <Messages
-                                  key={`message-list-${i}`}
-                                  message={message}
-                                  contact={chats?.User?.profile}
-                                  onDelete={onDelete}
-                                  index={i}
-                                  selectedReportId={selectedReportId}
-                                  handleReply={handleReply}
-                                  replayData={replayData}
-                                  handleForward={handleForward}
-                                  handlePinMessage={handlePinMessage}
-                                  pinnedMessages={pinnedMessages}
-                                  messageMutation={messageMutation}
-                                  selectedReportStatus={selectedReportStatus}
-                                  refetchReports={refetchReports}
-                                  setSelectedReportId={setSelectedReportId}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </>
-                      )}
-                      <PinnedMessages
-                        pinnedMessages={pinnedMessages}
-                        handleUnpinMessage={handleUnpinMessage}
-                      />
-                    </div>
-                  ) : reportDetailData && !reportDetailLoading ? (
-                    <ReportDetail
-                      reportDetailData={reportDetailData}
-                      refetchReports={refetchReports}
-                    />
-                  ) : (
-                    <Loader />
-                  )}
-                </CardContent>
-                <CardFooter className="flex-none flex-col px-0 py-4 border-t border-border">
-                  {selectedReportStatus === "In Progress" ? (
-                    reportDetailData ? (
-                      <MessageFooter
-                        handleSendMessage={handleSendMessage}
-                        replay={replay}
-                        setReply={setReply}
-                        replayData={replayData}
-                        reportDetailData={reportDetailData}
-                        handleAddAuthority={handleAddAuthority}
-                      />
-                    ) : null
-                  ) : reportDetailData ? (
-                    <ReportDetailFooter
+      <div className="flex gap-5 app-height  relative rtl:space-x-reverse">
+        {isLg && showContactSidebar && (
+          <div
+            className=" bg-background/60 backdrop-filter
+         backdrop-blur-sm absolute w-full flex-1 inset-0 z-[99] rounded-md"
+            onClick={() => setShowContactSidebar(false)}
+          ></div>
+        )}
+        {isLg && showInfo && (
+          <div
+            className=" bg-background/60 backdrop-filter
+         backdrop-blur-sm absolute w-full flex-1 inset-0 z-40 rounded-md"
+            onClick={() => setShowInfo(false)}
+          ></div>
+        )}
+        <div
+          className={cn("transition-all duration-150 flex-none  ", {
+            "absolute h-full top-0 md:w-[260px] w-[200px] z-[999]": isLg,
+            "flex-none min-w-[260px]": !isLg,
+            "left-0": isLg && showContactSidebar,
+            "-left-full": isLg && !showContactSidebar,
+          })}
+        >
+          <Card className="h-full pb-0">
+            <CardHeader className="border-none pb-0 mb-0">
+              <MyProfileHeader />
+            </CardHeader>
+            <CardContent className="pt-1 px-0 lg:h-[calc(100%-55px)] h-[calc(100%-70px)]">
+              <ScrollArea className="h-full">
+                {isLoading ? (
+                  <Loader />
+                ) : (
+                  listReport?.map((report) => (
+                    <ReportList
+                      key={report.id}
+                      report={report}
                       selectedReportId={selectedReportId}
-                      setSelectedReportStatus={setSelectedReportStatus}
-                      refetchReports={refetchReports}
-                      reportDetailData={reportDetailData}
+                      openChat={openChat}
                     />
-                  ) : null}
-                </CardFooter>
-              </Card>
-            </div>
-
-            {showInfo && (
-              <ContactInfo
-                handleSetIsOpenSearch={handleSetIsOpenSearch}
-                handleShowInfo={handleShowInfo}
-                contact={contacts?.contacts?.find(
-                  (contact) => contact.id === selectedReportId
+                  ))
                 )}
-              />
-            )}
-          </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
         </div>
-      ) : (
-        <Blank mblChatHandler={() => setShowContactSidebar(true)} />
-      )}
-      {/* <ForwardMessage
+
+        {selectedReportId ? (
+          <div className="flex-1 ">
+            <div className=" flex space-x-5 h-full rtl:space-x-reverse">
+              <div className="flex-1">
+                <Card className="h-full flex flex-col ">
+                  <CardHeader className="flex-none mb-0">
+                    <MessageHeader
+                      showInfo={showInfo}
+                      handleShowInfo={handleShowInfo}
+                      mblChatHandler={() =>
+                        setShowContactSidebar(!showContactSidebar)
+                      }
+                      reportDetailData={reportDetailData ?? {}}
+                      setSelectedReportId={setSelectedReportId}
+                      refetchReports={refetchReports}
+                    />
+                  </CardHeader>
+                  {isOpenSearch && (
+                    <SearchMessages
+                      handleSetIsOpenSearch={handleSetIsOpenSearch}
+                    />
+                  )}
+
+                  <CardContent className="!p-0 relative flex-1 overflow-y-auto">
+                    {selectedReportStatus === "In Progress" ? (
+                      <div
+                        className="h-full py-4 overflow-y-auto no-scrollbar"
+                        ref={chatHeightRef}
+                      >
+                        {messageLoading ? (
+                          <Loader />
+                        ) : (
+                          <>
+                            {messageIsError ? (
+                              <EmptyMessage />
+                            ) : (
+                              <div className="">
+                                {reportDetailData?.note && (
+                                  <Alert variant="soft" className="mb-6">
+                                    <AlertDescription>
+                                      Telah Ditangani Oleh :{" "}
+                                      <span className="font-medium">
+                                        {reportDetailData?.note}
+                                      </span>
+                                    </AlertDescription>
+                                  </Alert>
+                                )}
+                                {chats?.messages?.map((message, i) => (
+                                  <Messages
+                                    key={`message-list-${i}`}
+                                    message={message}
+                                    contact={chats?.User?.profile}
+                                    onDelete={onDelete}
+                                    index={i}
+                                    selectedReportId={selectedReportId}
+                                    handleReply={handleReply}
+                                    replayData={replayData}
+                                    handleForward={handleForward}
+                                    handlePinMessage={handlePinMessage}
+                                    pinnedMessages={pinnedMessages}
+                                    messageMutation={messageMutation}
+                                    selectedReportStatus={selectedReportStatus}
+                                    refetchReports={refetchReports}
+                                    setSelectedReportId={setSelectedReportId}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        )}
+                        <PinnedMessages
+                          pinnedMessages={pinnedMessages}
+                          handleUnpinMessage={handleUnpinMessage}
+                        />
+                      </div>
+                    ) : reportDetailData && !reportDetailLoading ? (
+                      <ReportDetail
+                        reportDetailData={reportDetailData}
+                        refetchReports={refetchReports}
+                      />
+                    ) : (
+                      <Loader />
+                    )}
+                  </CardContent>
+                  <CardFooter className="flex-none flex-col px-0 py-4 border-t border-border">
+                    {selectedReportStatus === "In Progress" ? (
+                      reportDetailData ? (
+                        <MessageFooter
+                          handleSendMessage={handleSendMessage}
+                          replay={replay}
+                          setReply={setReply}
+                          replayData={replayData}
+                          reportDetailData={reportDetailData}
+                          handleAddAuthority={handleAddAuthority}
+                        />
+                      ) : null
+                    ) : reportDetailData ? (
+                      <ReportDetailFooter
+                        selectedReportId={selectedReportId}
+                        setSelectedReportStatus={setSelectedReportStatus}
+                        refetchReports={refetchReports}
+                        reportDetailData={reportDetailData}
+                      />
+                    ) : null}
+                  </CardFooter>
+                </Card>
+              </div>
+
+              {showInfo && (
+                <ContactInfo
+                  handleSetIsOpenSearch={handleSetIsOpenSearch}
+                  handleShowInfo={handleShowInfo}
+                  contact={contacts?.contacts?.find(
+                    (contact) => contact.id === selectedReportId
+                  )}
+                />
+              )}
+            </div>
+          </div>
+        ) : (
+          <Blank mblChatHandler={() => setShowContactSidebar(true)} />
+        )}
+        {/* <ForwardMessage
         open={isForward}
         contact={"s"}
         setIsOpen={setIsForward}
         contacts={contacts}
       /> */}
+      </div>
     </div>
   );
 };
