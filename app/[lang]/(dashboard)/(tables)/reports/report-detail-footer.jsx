@@ -9,33 +9,14 @@ const ReportDetailFooter = ({
   setSelectedReportStatus,
   refetchReports,
   reportDetailData,
+  refetchMessage,
+  confirmReport,
 }) => {
   const user = localStorage.getItem("user")
     ? JSON.parse(localStorage.getItem("user"))
     : null;
   const { latitude, longitude } = reportDetailData;
   const socket = getSocket();
-  console.log(setSelectedReportStatus);
-
-  const confirmReport = async (event) => {
-    try {
-      const { data } = await axios.post(
-        `${API_BASE_URL}/ticket/confirm/${selectedReportId}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
-
-      refetchReports();
-      setSelectedReportStatus("In Progress");
-      socket.emit("join:ticketRoom", selectedReportId);
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
   return (
     <div className="flex justify-end gap-x-2 w-full pr-4">

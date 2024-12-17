@@ -162,7 +162,6 @@ const ChatPage = () => {
         message: message,
         sender: chats.Staff,
       });
-      console.log("tes");
     } catch (err) {
       console.log(err);
     }
@@ -177,7 +176,6 @@ const ChatPage = () => {
     if (!selectedReportId || !message || selectedReportStatus !== "In Progress")
       return;
 
-    console.log("SEND MESSAGE");
     sendMessageWS(message);
   };
   const chatHeightRef = useRef(null);
@@ -280,9 +278,32 @@ const ChatPage = () => {
     }
   };
 
+  const confirmReport = async () => {
+    try {
+      const { data } = await api.post(
+        `/ticket/confirm/${selectedReportId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      );
+
+      refetchReports();
+      setSelectedReportStatus("In Progress");
+      socket.emit("join:ticketRoom", selectedReportId);
+      socket.on("listen:ticketMessage", (data) => {
+        messageMutation.mutate(data);
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-y-3">
-      <div className="flex justify-end gap-x-2">
+      <div className="flex gap-x-2">
         <Button type="button">Closed Case</Button>
         <Button type="button">Resolved Case</Button>
       </div>
@@ -434,6 +455,8 @@ const ChatPage = () => {
                         setSelectedReportStatus={setSelectedReportStatus}
                         refetchReports={refetchReports}
                         reportDetailData={reportDetailData}
+                        refetchMessage={refetchMessage}
+                        confirmReport={confirmReport}
                       />
                     ) : null}
                   </CardFooter>

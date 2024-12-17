@@ -13,8 +13,6 @@ export const getReports = async () => {
     },
   });
 
-  // console.log(data.data);
-
   return data.data;
 };
 
@@ -36,7 +34,6 @@ export const getMessages = async (reportId) => {
       },
     });
 
-    console.log("Response from getMessages:", data.data);
     return data.data;
   } catch (error) {
     console.error("Error fetching messages:", error);

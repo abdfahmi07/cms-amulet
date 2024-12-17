@@ -36,32 +36,27 @@ const Messages = ({
     : null;
   const socket = getSocket();
 
-  console.log(selectedReportStatus, selectedReportId);
-
   useEffect(() => {
     socket.on("listen:ticketMessage", (data) => {
-      console.log(data, "data ticket enter");
       messageMutation.mutate(data);
     });
-  }, []);
+  }, [selectedReportStatus, selectedReportId]);
 
   useEffect(() => {
     socket.on("connect", () => {
       socket.emit("join:ticketRoom", selectedReportId);
     });
-  }, []);
+  }, [selectedReportStatus, selectedReportId]);
 
   useEffect(() => {
     socket.emit("join:ticketRoom", selectedReportId);
-    console.log("connect join ticket");
     return () => {
       socket.emit("leave:ticketRoom", selectedReportId);
     };
-  }, []);
+  }, [selectedReportStatus, selectedReportId]);
 
   useEffect(() => {
     socket.on("listen:ticketClosed", (data) => {
-      console.log(data, "ticket closed");
       setSelectedReportId(null);
       refetchReports();
     });
