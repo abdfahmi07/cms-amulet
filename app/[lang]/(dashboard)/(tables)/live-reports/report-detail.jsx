@@ -49,21 +49,6 @@ const ReportDetail = ({ reportDetailData, refetchReports }) => {
       </div>
       <div className="w-[70%] flex flex-col gap-y-4">
         <div className="flex flex-col gap-y-2">
-          <p className="text-muted-foreground text-sm">Status</p>
-          <Badge
-            color={
-              status === "Open"
-                ? "warning"
-                : status === "Resolved"
-                ? "success"
-                : "info"
-            }
-            className="w-fit"
-          >
-            {status}
-          </Badge>
-        </div>
-        <div className="flex flex-col gap-y-2">
           <p className="text-muted-foreground text-sm">Name</p>
           <p className="text-sm capitalize">{User?.profile?.fullname}</p>
         </div>

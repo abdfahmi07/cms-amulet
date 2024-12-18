@@ -69,7 +69,7 @@ const LogInForm = () => {
 
         toast.success("Login Successful");
         localStorage.setItem("user", JSON.stringify(dataRes.data));
-        window.location.assign("/reports");
+        window.location.assign("/live-reports");
         reset();
       } catch (err) {
         toast.error("Login Invalid");

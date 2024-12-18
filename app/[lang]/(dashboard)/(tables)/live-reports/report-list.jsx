@@ -7,13 +7,8 @@ import defaultUser from "@/public/images/avatar/default-user.png";
 import moment from "moment";
 
 const ReportList = ({ report, openChat, selectedReportId }) => {
-  const {
-    profile: { fullname, photo_url },
-    id: userId,
-    email,
-    phone,
-  } = report.User;
-  const { id, status, messages } = report;
+  const { id, status, messages, User } = report;
+  const { profile, id: userId, email, phone } = User || {};
   const user = localStorage.getItem("user")
     ? JSON.parse(localStorage.getItem("user"))
     : null;
@@ -38,13 +33,13 @@ const ReportList = ({ report, openChat, selectedReportId }) => {
       <div className="flex-1 flex  gap-3 ">
         <div className="relative inline-block ">
           <Avatar>
-            <AvatarImage src={photo_url || defaultUser} />
+            <AvatarImage src={profile?.photo_url || defaultUser} />
             <AvatarFallback
               className={`uppercase ${
                 report.isNew ? "font-medium" : "font-light"
               }`}
             >
-              {fullname.slice(0, 2)}
+              {profile?.fullname.slice(0, 2)}
             </AvatarFallback>
           </Avatar>
           {report.isNew && (
@@ -64,7 +59,7 @@ const ReportList = ({ report, openChat, selectedReportId }) => {
                 } capitalize`}
               >
                 {" "}
-                {fullname}
+                {profile?.fullname}
               </span>
               {/* <span
                 className={cn(

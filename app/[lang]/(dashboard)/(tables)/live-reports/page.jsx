@@ -44,7 +44,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { api } from "@/config/axios.config";
 import { Button } from "@/components/ui/button";
 
-const ChatPage = () => {
+const LiveReportsPage = () => {
   const [selectedReportId, setSelectedReportId] = useState(null);
   const [selectedReportStatus, setSelectedReportStatus] = useState(null);
   const [showContactSidebar, setShowContactSidebar] = useState(false);
@@ -303,10 +303,10 @@ const ChatPage = () => {
 
   return (
     <div className="flex flex-col gap-y-3">
-      <div className="flex gap-x-2">
+      {/* <div className="flex gap-x-2">
         <Button type="button">Closed Case</Button>
         <Button type="button">Resolved Case</Button>
-      </div>
+      </div> */}
       <div className="flex gap-5 app-height  relative rtl:space-x-reverse">
         {isLg && showContactSidebar && (
           <div
@@ -338,7 +338,7 @@ const ChatPage = () => {
               <ScrollArea className="h-full">
                 {isLoading ? (
                   <Loader />
-                ) : (
+                ) : listReport.length !== 0 ? (
                   listReport?.map((report) => (
                     <ReportList
                       key={report.id}
@@ -347,6 +347,12 @@ const ChatPage = () => {
                       openChat={openChat}
                     />
                   ))
+                ) : (
+                  <div className="h-full flex flex-col justify-center items-center">
+                    <p className="w-48 text-center text-default-500">
+                      Untuk saat ini masih belum ada accident terbaru
+                    </p>
+                  </div>
                 )}
               </ScrollArea>
             </CardContent>
@@ -488,4 +494,4 @@ const ChatPage = () => {
   );
 };
 
-export default ChatPage;
+export default LiveReportsPage;

@@ -10,6 +10,7 @@ const user = localStorage.getItem("user")
 export const getSocket = () => {
   if (!socket) {
     socket = io(process.env.NEXT_PUBLIC_SOCKET_URL_STAGING || "", {
+      // transports: ["websocket"],
       extraHeaders: {
         Authorization: `${user.token}`,
       },

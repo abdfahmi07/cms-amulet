@@ -1032,8 +1032,22 @@ export const menusConfig = {
         child: [
           {
             title: "Reports",
-            href: "/reports",
+            href: "/live-reports",
             icon: ClipBoard2,
+            nested: [
+              {
+                title: "Live Reports",
+                href: "/live-reports",
+              },
+              {
+                title: "Closed Reports",
+                href: "/closed-reports",
+              },
+              {
+                title: "Resolved Reports",
+                href: "/resolved-reports",
+              },
+            ],
           },
           // {
           //   title: "Early Warning System",

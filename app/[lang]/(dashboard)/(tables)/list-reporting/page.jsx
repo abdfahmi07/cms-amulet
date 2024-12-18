@@ -4,7 +4,7 @@ import Reports from "./reports";
 
 const ReportsPage = () => {
   return (
-    <div className=" space-y-5">
+    <div className="space-y-5">
       {/* <Card>
         <CardHeader>
           <CardTitle>List Reporting</CardTitle>

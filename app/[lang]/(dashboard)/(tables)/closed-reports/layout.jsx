@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Chat",
+  title: "Closed Reports",
 };
 
 const Layout = ({ children }) => {

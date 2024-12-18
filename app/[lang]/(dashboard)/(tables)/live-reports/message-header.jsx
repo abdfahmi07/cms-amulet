@@ -29,6 +29,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/config/axios.config";
 import { getSocket } from "@/config/socket-io";
 import { Textarea } from "@/components/ui/textarea";
+import { messagesTemplate } from "@/utils/messages-template";
 
 const schema = z.object({
   textMessage: z.string().min(1, { message: "Message is required" }),
@@ -61,15 +62,21 @@ const MessageHeader = ({
     resolver: zodResolver(schema),
     mode: "all",
     defaultValues: {
-      textMessage: "Terima kasih telah menghubungi layanan kami...",
+      textMessage: "",
     },
   });
 
-  const submitCloseReport = async () => {
+  const submitCloseReport = async (
+    isOptionClicked = false,
+    messageOptionValue = ""
+  ) => {
     try {
       const { textMessage } = getValues();
       const payloads = new FormData();
-      payloads.append("message_close", textMessage);
+      payloads.append(
+        "message_close",
+        isOptionClicked ? messageOptionValue : textMessage
+      );
 
       await api.post(`/ticket/closed/${reportId}`, payloads, {
         headers: {
@@ -152,7 +159,7 @@ const MessageHeader = ({
         {status === "In Progress" && (
           <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
             <Button onClick={() => setIsOpenDialog(true)}>Close Report</Button>
-            <DialogContent size="xs">
+            <DialogContent size="3xl">
               <form onSubmit={handleSubmit(submitCloseReport)}>
                 <DialogHeader>
                   <DialogTitle className="text-base font-medium text-default-700 max-w-[230px] ">
@@ -176,6 +183,19 @@ const MessageHeader = ({
                       {errors.textMessage.message}
                     </div>
                   )}
+
+                  <div className="flex flex-wrap gap-2">
+                    {messagesTemplate?.map((message, idx) => (
+                      <Button
+                        key={idx}
+                        className="rounded-full text-xs"
+                        variant="outline"
+                        onClick={() => submitCloseReport(true, message.text)}
+                      >
+                        {message.text}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
                 <DialogFooter className="mt-8">
                   <DialogClose asChild>
