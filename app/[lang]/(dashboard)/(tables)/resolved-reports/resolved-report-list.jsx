@@ -279,6 +279,18 @@ export function ResolvedReportList() {
                         ).format("DD/MM/YYYY H:mm")} WIB`}</p>
                       </div>
                       <div className="flex flex-col gap-y-2">
+                        <p className="text-muted-foreground text-sm">Rating</p>
+                        <div className="flex gap-x-1">
+                          {resolvedReportDetail.rating ? (
+                            [...Array(resolvedReportDetail.rating).keys()].map(
+                              (i) => <StarIcon class="h-5 w-5" color="orange" />
+                            )
+                          ) : (
+                            <span>'-'</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-y-2">
                         <p className="text-muted-foreground text-sm">Status</p>
                         <Badge color="success" className="w-fit">
                           {resolvedReportDetail.status}

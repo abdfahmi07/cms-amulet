@@ -32,7 +32,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { messagesTemplate } from "@/utils/messages-template";
 
 const schema = z.object({
-  textMessage: z.string().min(1, { message: "Message is required" }),
+  textMessage: z
+    .string()
+    .min(1, { message: "Pesan harus diisi" })
+    .max(150, { message: "Maksimal harus 150 karakter" }),
 });
 
 const MessageHeader = ({
