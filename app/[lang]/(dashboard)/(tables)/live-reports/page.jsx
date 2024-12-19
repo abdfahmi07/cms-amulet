@@ -412,10 +412,7 @@ const LiveReportsPage = () => {
                             ) : (
                               <div className="">
                                 {reportDetailData?.note && (
-                                  <Alert
-                                    variant="soft"
-                                    className="mb-6 sticky z-50 top-0"
-                                  >
+                                  <Alert variant="soft" className="mb-6">
                                     <AlertDescription>
                                       Telah Ditangani Oleh :{" "}
                                       <span className="font-medium">

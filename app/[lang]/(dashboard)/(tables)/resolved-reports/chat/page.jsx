@@ -76,7 +76,7 @@ const ResolvedReportChat = () => {
                       ) : (
                         <>
                           {reportDetailIsError ||
-                          reportDetailData.length !== 0 ? (
+                          reportDetailData?.messages?.length === 0 ? (
                             <EmptyMessage />
                           ) : (
                             <div className="">
