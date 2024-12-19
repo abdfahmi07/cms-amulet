@@ -15,7 +15,7 @@ const ReportList = ({ report, openChat, selectedReportId }) => {
   const reportCreatedAt = report.created_at;
   const messageCreatedAt = messages?.[0]?.created_at;
   const isNotToday = !moment(
-    messages.length === 0 || status === "Open"
+    messages?.length === 0 || status === "Open"
       ? reportCreatedAt
       : messageCreatedAt
   ).isSame(moment(), "day");
