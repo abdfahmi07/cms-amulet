@@ -13,6 +13,5 @@ export const getReportDetail = async (reportId) => {
     },
   });
 
-  console.log(data.data);
   return data.data;
 };
