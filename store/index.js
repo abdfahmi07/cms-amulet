@@ -68,7 +68,15 @@ export const useReports = create(
   persist(
     (set) => ({
       reports: [],
+      selectedReportId: null,
+      selectedReportStatus: null,
+      selectedReportUserId: null,
       setReports: (reports) => set({ reports }),
+      setSelectedReportId: (reportId) => set({ selectedReportId: reportId }),
+      setSelectedReportStatus: (reportStatus) =>
+        set({ selectedReportStatus: reportStatus }),
+      setSelectedReportUserId: (userId) =>
+        set({ selectedReportUserId: userId }),
     }),
     {
       name: "reports-store", // name of the item in the storage (must be unique)

@@ -15,7 +15,7 @@ const ReportDetailFooter = ({
   const user = localStorage.getItem("user")
     ? JSON.parse(localStorage.getItem("user"))
     : null;
-  const { latitude, longitude } = reportDetailData;
+  const { latitude, longitude, user_id: userId } = reportDetailData;
   const socket = getSocket();
 
   return (
@@ -29,7 +29,7 @@ const ReportDetailFooter = ({
           Lihat Lokasi
         </Button>
       </Link>
-      <Button type="button" onClick={confirmReport}>
+      <Button type="button" onClick={() => confirmReport(userId)}>
         Konfirmasi
       </Button>
     </div>

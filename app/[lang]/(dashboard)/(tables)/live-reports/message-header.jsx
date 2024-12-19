@@ -125,35 +125,37 @@ const MessageHeader = ({
         </div>
       </div>
       <div className="flex space-x-2 rtl:space-x-reverse">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                size="icon"
-                className={cn(
-                  "bg-transparent hover:bg-default-50 rounded-full",
-                  {
-                    "text-primary": !showInfo,
-                  }
-                )}
-                onClick=""
-              >
-                <span className="text-xl text-primary ">
-                  {showInfo ? (
-                    <Icon icon="material-symbols:info" />
-                  ) : (
-                    <Icon icon="material-symbols:info-outline" />
+        {status === "In Progress" && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  size="icon"
+                  className={cn(
+                    "bg-transparent hover:bg-default-50 rounded-full",
+                    {
+                      "text-primary": !showInfo,
+                    }
                   )}
-                </span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" align="end">
-              <p>Detail User</p>
-              <TooltipArrow className="fill-primary" />
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+                  onClick={handleShowInfo}
+                >
+                  <span className="text-xl text-primary ">
+                    {showInfo ? (
+                      <Icon icon="material-symbols:info" />
+                    ) : (
+                      <Icon icon="material-symbols:info-outline" />
+                    )}
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="end">
+                <p>Detail User</p>
+                <TooltipArrow className="fill-primary" />
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
         {status === "In Progress" && (
           <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
             <Button onClick={() => setIsOpenDialog(true)}>Close Report</Button>

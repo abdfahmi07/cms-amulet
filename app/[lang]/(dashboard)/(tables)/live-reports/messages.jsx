@@ -7,6 +7,7 @@ import moment from "moment";
 import defaultUser from "@/public/images/avatar/default-user.png";
 import { getSocket } from "@/config/socket-io";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { api } from "@/config/axios.config";
 
 const Messages = ({
   message,
@@ -29,6 +30,7 @@ const Messages = ({
     created_at: time,
     sender_id: senderId,
     is_read: isRead = true,
+    read_at: readAt,
   } = message;
   const { photo_url: avatar } = contact;
   const user = localStorage.getItem("user")
@@ -47,14 +49,36 @@ const Messages = ({
     socket.on("connect", () => {
       socket.emit("join:ticketRoom", selectedReportId);
     });
-  }, [selectedReportStatus, selectedReportId]);
+  }, []);
 
   useEffect(() => {
     socket.emit("join:ticketRoom", selectedReportId);
     return () => {
       socket.emit("leave:ticketRoom", selectedReportId);
     };
-  }, [selectedReportStatus, selectedReportId]);
+  }, []);
+
+  // const readMessages = async () => {
+  //   try {
+  //     const { data } = await api.post(
+  //       `/ticket/read/${selectedReportId}/messages`,
+  //       {},
+  //       {
+  //         headers: { Authorization: `Bearer ${user.token}` },
+  //       }
+  //     );
+
+  //     refetchReports();
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   if (!readAt) {
+  //     readMessages();
+  //   }
+  // }, []);
 
   // useEffect(() => {
   //   socket.on("listen:ticketClosed", (data) => {

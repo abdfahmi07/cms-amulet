@@ -45,7 +45,9 @@ import { api } from "@/config/axios.config";
 import { Button } from "@/components/ui/button";
 
 const LiveReportsPage = () => {
-  const [selectedReportId, setSelectedReportId] = useState(null);
+  // const [selectedReportId, setSelectedReportId] = useState(null);
+  const { selectedReportId, setSelectedReportId } = useReports();
+  const { selectedReportUserId, setSelectedReportUserId } = useReports();
   const [selectedReportStatus, setSelectedReportStatus] = useState(null);
   const [showContactSidebar, setShowContactSidebar] = useState(false);
 
@@ -137,10 +139,12 @@ const LiveReportsPage = () => {
     setPinnedMessages(updatedPinnedMessages);
   };
 
-  const openChat = async (reportId, status) => {
+  const openChat = async (reportId, status, userId) => {
     setSelectedReportStatus(status);
     setSelectedReportId(reportId);
+    setSelectedReportUserId(userId);
     setReply(false);
+    setShowInfo(false);
 
     socket.emit("join:ticketRoom", reportId);
     // await refetchReportDetail({
@@ -279,7 +283,7 @@ const LiveReportsPage = () => {
     }
   };
 
-  const confirmReport = async () => {
+  const confirmReport = async (userId) => {
     try {
       const { data } = await api.post(
         `/ticket/confirm/${selectedReportId}`,
@@ -304,7 +308,6 @@ const LiveReportsPage = () => {
 
   useEffect(() => {
     socket.on("listen:ticketMessage", (data) => {
-      console.log(data);
       messageMutation.mutate(data);
     });
   }, []);
@@ -315,6 +318,33 @@ const LiveReportsPage = () => {
       refetchReports();
     });
   }, []);
+
+  useEffect(() => {
+    setSelectedReportId(null);
+  }, []);
+
+  // const readMessages = async () => {
+  //   try {
+  //     const { data } = await api.post(
+  //       `/ticket/read/${selectedReportId}/messages`,
+  //       {},
+  //       {
+  //         headers: { Authorization: `Bearer ${user.token}` },
+  //       }
+  //     );
+
+  //     console.log("okeee nihh");
+  //     refetchReports();
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   if (selectedReportStatus === "In Progress") {
+  //     readMessages();
+  //   }
+  // }, [selectedReportStatus]);
 
   return (
     <div className="flex flex-col gap-y-3">
@@ -488,9 +518,7 @@ const LiveReportsPage = () => {
                 <ContactInfo
                   handleSetIsOpenSearch={handleSetIsOpenSearch}
                   handleShowInfo={handleShowInfo}
-                  contact={contacts?.contacts?.find(
-                    (contact) => contact.id === selectedReportId
-                  )}
+                  detailReport={chats}
                 />
               )}
             </div>

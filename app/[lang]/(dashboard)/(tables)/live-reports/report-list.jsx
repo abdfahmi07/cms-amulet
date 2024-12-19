@@ -5,10 +5,12 @@ import { cn, formatTime } from "@/lib/utils";
 import { Icon } from "@iconify/react";
 import defaultUser from "@/public/images/avatar/default-user.png";
 import moment from "moment";
+import { useEffect, useState } from "react";
 
 const ReportList = ({ report, openChat, selectedReportId }) => {
-  const { id, status, messages, User } = report;
-  const { profile, id: userId, email, phone } = User || {};
+  const [unreadMessages, setUnreadMessages] = useState(null);
+  const { id, status, messages, User, user_id: userId } = report;
+  const { profile, email, phone } = User || {};
   const user = localStorage.getItem("user")
     ? JSON.parse(localStorage.getItem("user"))
     : null;
@@ -20,6 +22,18 @@ const ReportList = ({ report, openChat, selectedReportId }) => {
       : messageCreatedAt
   ).isSame(moment(), "day");
 
+  // useEffect(() => {
+  //   if (messages.length === 0) {
+  //     setUnreadMessages(0);
+  //   } else {
+  //     const filteredUnreadMessages = messages.filter(
+  //       (message) => !message.read_at && message.sender_id !== user.id
+  //     );
+  //     console.log(filteredUnreadMessages, messages, "filter");
+  //     setUnreadMessages(filteredUnreadMessages.length);
+  //   }
+  // }, []);
+
   return (
     <div
       className={cn(
@@ -28,7 +42,7 @@ const ReportList = ({ report, openChat, selectedReportId }) => {
           "lg:border-primary/70 lg:bg-default-200 ": id === selectedReportId,
         }
       )}
-      onClick={() => openChat(id, status)}
+      onClick={() => openChat(id, status, userId)}
     >
       <div className="flex-1 flex  gap-3 ">
         <div className="relative inline-block ">
@@ -36,13 +50,15 @@ const ReportList = ({ report, openChat, selectedReportId }) => {
             <AvatarImage src={profile?.photo_url || defaultUser} />
             <AvatarFallback
               className={`uppercase ${
-                report.isNew ? "font-medium" : "font-light"
+                !report.read_at && report.status === "Open"
+                  ? "font-medium"
+                  : "font-light"
               }`}
             >
               {profile?.fullname.slice(0, 2)}
             </AvatarFallback>
           </Avatar>
-          {report.isNew && (
+          {!report.read_at && report.status === "Open" && (
             <Badge
               className="h-2 w-2 p-0 ring-1 ring-border ring-offset-[1px] items-center justify-center absolute
              left-[calc(100%-8px)] top-[calc(100%-10px)] text-[10px]"
@@ -55,7 +71,9 @@ const ReportList = ({ report, openChat, selectedReportId }) => {
             <div className="flex gap-x-2">
               <span
                 className={`text-sm text-default-900 ${
-                  report.isNew ? "font-medium" : "font-light"
+                  !report.read_at && report.status === "Open"
+                    ? "font-medium"
+                    : "font-light"
                 } capitalize`}
               >
                 {" "}
@@ -77,17 +95,21 @@ const ReportList = ({ report, openChat, selectedReportId }) => {
             <span
               className={`text-[11px] ${
                 status === "Open" ? "text-orange-400" : "text-green-600"
-              } ${report.isNew ? "font-medium" : "font-light"}`}
+              } ${
+                !report.read_at && report.status === "Open"
+                  ? "font-medium"
+                  : "font-light"
+              }`}
             >
               {status === "Open" ? "Belum Ditangani" : "Sedang Ditangani"}
             </span>
           </div>
         </div>
       </div>
-      <div className="flex-none  flex-col items-end  gap-2 hidden lg:flex">
+      <div className="flex-none flex-col items-end  gap-2 hidden lg:flex">
         <span
           className={`text-xs ${
-            report.isNew
+            !report.read_at && report.status === "Open"
               ? "text-primary font-medium"
               : "text-default-600 font-light"
           } text-end uppercase`}
@@ -98,9 +120,18 @@ const ReportList = ({ report, openChat, selectedReportId }) => {
               : messages?.[0]?.created_at
           ).format(isNotToday ? "DD/MM/YYYY" : "HH:mm")}
         </span>
-        {/* {report.isNew && ( */}
-
-        {/* )} */}
+        {/* {status === "In Progress" && unreadMessages !== 0 && (
+          <span
+            className={cn(
+              "h-[14px] w-[14px] flex items-center justify-center bg-default-400 rounded-full text-primary-foreground text-[10px] font-medium",
+              {
+                "bg-primary/70": unreadMessages > 0,
+              }
+            )}
+          >
+            {unreadMessages}
+          </span>
+        )} */}
       </div>
     </div>
   );

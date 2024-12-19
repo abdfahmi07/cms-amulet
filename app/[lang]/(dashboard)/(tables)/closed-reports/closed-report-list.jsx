@@ -42,6 +42,8 @@ export function ClosedReportList() {
   const [closedReportDetail, setClosedReportDetail] = React.useState({});
   const [filterValue, setFilterValue] = React.useState("live");
   const [pinnedMessages, setPinnedMessages] = React.useState([]);
+  const [currentPage, setCurrentPage] = React.useState(0);
+  const [totalPage, setTotalPage] = React.useState(0);
 
   const router = useRouter();
   const socket = getSocket();
@@ -70,10 +72,18 @@ export function ClosedReportList() {
         },
         params: {
           status: "Closed",
+          page: currentPage,
         },
       });
 
-      setClosedReportList(data.data.data);
+      setCurrentPage(currentPage);
+      setTotalPage(data.data.pagination.pages);
+
+      if (currentPage !== 0) {
+        setClosedReportList((prevState) => [...prevState, ...data.data.data]);
+      } else {
+        setClosedReportList(data.data.data);
+      }
     } catch (err) {
       toast.error(err.response.message || "Something Went Wrong");
     }
@@ -81,7 +91,7 @@ export function ClosedReportList() {
 
   React.useEffect(() => {
     getListReporting();
-  }, []);
+  }, [currentPage]);
 
   const getDetailReporting = async (reportId) => {
     try {
@@ -104,6 +114,10 @@ export function ClosedReportList() {
 
   const handleDialogTriggerClick = (event, reportId) => {
     getDetailReporting(reportId);
+  };
+
+  const handleLoadMoreProducts = () => {
+    setCurrentPage((prevState) => prevState + 1);
   };
 
   return (
@@ -281,6 +295,13 @@ export function ClosedReportList() {
           </div>
         )}
       </div>
+      {totalPage > currentPage && (
+        <div className="flex justify-center">
+          <Button size="lg" onClick={handleLoadMoreProducts}>
+            Lihat Lainnya
+          </Button>
+        </div>
+      )}
     </>
   );
 }

@@ -20,6 +20,9 @@ import { api } from "@/config/axios.config";
 const DashBoardLayoutProvider = ({ children, trans }) => {
   const { collapsed, sidebarType, setCollapsed, subMenu } = useSidebar();
   const { reports, setReports } = useReports();
+  const { selectedReportId, setSelectedReportId } = useReports();
+  const { selectedReportStatus, setSelectedReportStatus } = useReports();
+  const { selectedReportUserId, setSelectedReportUserId } = useReports();
   const [open, setOpen] = useState(false);
   const { layout } = useThemeStore();
   const location = usePathname();
@@ -38,14 +41,6 @@ const DashBoardLayoutProvider = ({ children, trans }) => {
 
   useEffect(() => {
     socket.on("listen:openCase", async (newData) => {
-      // console.log(data);
-      // const formattedAddress = await getAddress({
-      //   lat: data.latitude,
-      //   lng: data.longitude,
-      // });
-      // const formattedData = { ...data, address: formattedAddress };
-
-      // setReports([formattedData, ...reports]);
       const { data } = await api.get("/ticket/admin", {
         headers: {
           Authorization: `Bearer ${user.token}`,
@@ -57,13 +52,18 @@ const DashBoardLayoutProvider = ({ children, trans }) => {
         (responseData) => responseData.id !== newData.id
       );
 
-      const foundedData = responsesData.find(
-        (responseData) => responseData.id === newData.id
-      );
-      const formattedData = { ...foundedData, isNew: true };
+      // const foundedData = responsesData.find(
+      //   (responseData) => responseData.id === newData.id
+      // );
 
-      // console.log(data);
-      setReports([formattedData, ...filteredData]);
+      // const formattedData = { ...foundedData, isNew: true };
+
+      // console.log(newData.user_id, selectedReportUserId, "TES OKEE");
+      // if (newData.user_id === selectedReportUserId) {
+      //   setSelectedReportId(null);
+      // }
+
+      setReports([newData, ...filteredData]);
     });
   }, []);
 

@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { api } from "@/config/axios.config";
 import { getAddress } from "@/utils/maps";
 import moment from "moment";
 import Player from "next-video/player";
@@ -6,9 +7,20 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 const ReportDetail = ({ reportDetailData, refetchReports }) => {
-  const { media, status, User, created_at, latitude, longitude } =
-    reportDetailData;
+  const {
+    id: reportId,
+    media,
+    status,
+    User,
+    created_at,
+    latitude,
+    longitude,
+    read_at: readAt,
+  } = reportDetailData;
   const [formattedAddress, setFormattedAddress] = useState(null);
+  const user = localStorage.getItem("user")
+    ? JSON.parse(localStorage.getItem("user"))
+    : null;
 
   useEffect(() => {
     const fetchFormattedAddress = async () => {
@@ -19,6 +31,28 @@ const ReportDetail = ({ reportDetailData, refetchReports }) => {
 
     fetchFormattedAddress();
     return () => {};
+  }, []);
+
+  const readTicket = async () => {
+    try {
+      await api.post(
+        `/ticket/read/${reportId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+        }
+      );
+
+      refetchReports();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    if (!readAt) {
+      readTicket();
+    }
   }, []);
 
   return (
