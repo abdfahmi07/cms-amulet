@@ -178,6 +178,7 @@ const LiveReportsPage = () => {
 
     sendMessageWS(message);
   };
+
   const chatHeightRef = useRef(null);
 
   // replay message
@@ -301,6 +302,20 @@ const LiveReportsPage = () => {
     }
   };
 
+  useEffect(() => {
+    socket.on("listen:ticketMessage", (data) => {
+      console.log(data);
+      messageMutation.mutate(data);
+    });
+  }, []);
+
+  useEffect(() => {
+    socket.on("listen:ticketClosed", (data) => {
+      setSelectedReportId(null);
+      refetchReports();
+    });
+  }, []);
+
   return (
     <div className="flex flex-col gap-y-3">
       {/* <div className="flex gap-x-2">
@@ -397,7 +412,10 @@ const LiveReportsPage = () => {
                             ) : (
                               <div className="">
                                 {reportDetailData?.note && (
-                                  <Alert variant="soft" className="mb-6">
+                                  <Alert
+                                    variant="soft"
+                                    className="mb-6 sticky z-50 top-0"
+                                  >
                                     <AlertDescription>
                                       Telah Ditangani Oleh :{" "}
                                       <span className="font-medium">

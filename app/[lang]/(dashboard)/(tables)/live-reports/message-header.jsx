@@ -66,17 +66,10 @@ const MessageHeader = ({
     },
   });
 
-  const submitCloseReport = async (
-    isOptionClicked = false,
-    messageOptionValue = ""
-  ) => {
+  const submitCloseReport = async (messageValue) => {
     try {
-      const { textMessage } = getValues();
       const payloads = new FormData();
-      payloads.append(
-        "message_close",
-        isOptionClicked ? messageOptionValue : textMessage
-      );
+      payloads.append("message_close", messageValue);
 
       await api.post(`/ticket/closed/${reportId}`, payloads, {
         headers: {
@@ -90,12 +83,17 @@ const MessageHeader = ({
     }
   };
 
+  const handleCustomSubmit = (data) => {
+    const { textMessage } = data;
+    submitCloseReport(textMessage);
+  };
+
   return (
     <div className="flex  items-center">
       <div className="flex flex-1 gap-3 items-center">
         {isLg && (
           <Menu
-            className=" h-5 w-5 cursor-pointer text-default-600"
+            className="h-5 w-5 cursor-pointer text-default-600"
             onClick={mblChatHandler}
           />
         )}
@@ -160,7 +158,7 @@ const MessageHeader = ({
           <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
             <Button onClick={() => setIsOpenDialog(true)}>Close Report</Button>
             <DialogContent size="3xl">
-              <form onSubmit={handleSubmit(submitCloseReport)}>
+              <form onSubmit={handleSubmit(handleCustomSubmit)}>
                 <DialogHeader>
                   <DialogTitle className="text-base font-medium text-default-700 max-w-[230px] ">
                     Say Something
@@ -187,10 +185,11 @@ const MessageHeader = ({
                   <div className="flex flex-wrap gap-2">
                     {messagesTemplate?.map((message, idx) => (
                       <Button
+                        type="button"
                         key={idx}
                         className="rounded-full text-xs"
                         variant="outline"
-                        onClick={() => submitCloseReport(true, message.text)}
+                        onClick={() => submitCloseReport(message.text)}
                       >
                         {message.text}
                       </Button>

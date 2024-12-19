@@ -36,11 +36,12 @@ const Messages = ({
     : null;
   const socket = getSocket();
 
-  useEffect(() => {
-    socket.on("listen:ticketMessage", (data) => {
-      messageMutation.mutate(data);
-    });
-  }, [selectedReportStatus, selectedReportId]);
+  // useEffect(() => {
+  //   socket.on("listen:ticketMessage", (data) => {
+  //     console.log(data);
+  //     messageMutation.mutate(data);
+  //   });
+  // }, [selectedReportStatus, selectedReportId]);
 
   useEffect(() => {
     socket.on("connect", () => {
@@ -55,12 +56,12 @@ const Messages = ({
     };
   }, [selectedReportStatus, selectedReportId]);
 
-  useEffect(() => {
-    socket.on("listen:ticketClosed", (data) => {
-      setSelectedReportId(null);
-      refetchReports();
-    });
-  }, []);
+  // useEffect(() => {
+  //   socket.on("listen:ticketClosed", (data) => {
+  //     setSelectedReportId(null);
+  //     refetchReports();
+  //   });
+  // }, []);
 
   return (
     <>
