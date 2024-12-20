@@ -314,7 +314,13 @@ const LiveReportsPage = () => {
 
   useEffect(() => {
     socket.on("listen:ticketClosed", (data) => {
-      setSelectedReportId(null);
+      if (
+        (data.id === selectedReportId && data.status === "Resolved") ||
+        data.status === "Closed"
+      ) {
+        setSelectedReportId(null);
+      }
+
       refetchReports();
     });
   }, []);
@@ -322,6 +328,8 @@ const LiveReportsPage = () => {
   useEffect(() => {
     setSelectedReportId(null);
   }, []);
+
+  console.log(selectedReportId);
 
   // const readMessages = async () => {
   //   try {

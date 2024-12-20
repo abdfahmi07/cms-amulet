@@ -129,12 +129,12 @@ export function ResolvedReportList() {
           Resolved Reports
         </div>
       </div>
-      <div
-        className={`grid 
+      {resolvedReportList?.length !== 0 ? (
+        <div
+          className={`grid 
             xl:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-3`}
-      >
-        {resolvedReportList?.length !== 0 ? (
-          resolvedReportList?.map((resolvedReport) => {
+        >
+          {resolvedReportList?.map((resolvedReport) => {
             return (
               <Dialog key={resolvedReport?.id}>
                 <Card className="">
@@ -321,13 +321,13 @@ export function ResolvedReportList() {
                 </DialogContent>
               </Dialog>
             );
-          })
-        ) : (
-          <div className=" font-medium text-default-500">
-            Maaf, untuk saat ini belum ada kasus yang sudah ditutup
-          </div>
-        )}
-      </div>
+          })}
+        </div>
+      ) : (
+        <div className="font-medium text-default-500">
+          Maaf, untuk saat ini belum ada kasus yang sudah diselesaikan
+        </div>
+      )}
       {totalPage > currentPage && (
         <div className="flex justify-center">
           <Button size="lg" onClick={handleLoadMoreProducts}>

@@ -127,12 +127,12 @@ export function ClosedReportList() {
           Closed Reports
         </div>
       </div>
-      <div
-        className={`grid 
+      {closedReportList?.length !== 0 ? (
+        <div
+          className={`grid 
             xl:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-3`}
-      >
-        {closedReportList?.length !== 0 ? (
-          closedReportList?.map((closedReport) => {
+        >
+          {closedReportList?.map((closedReport) => {
             return (
               <Dialog key={closedReport?.id}>
                 <Card className="">
@@ -288,13 +288,13 @@ export function ClosedReportList() {
                 </DialogContent>
               </Dialog>
             );
-          })
-        ) : (
-          <div className=" font-medium text-default-500">
-            Maaf, untuk saat ini belum ada kasus yang sudah ditutup
-          </div>
-        )}
-      </div>
+          })}
+        </div>
+      ) : (
+        <div className=" font-medium text-default-500">
+          Maaf, untuk saat ini belum ada kasus yang sudah ditutup
+        </div>
+      )}
       {totalPage > currentPage && (
         <div className="flex justify-center">
           <Button size="lg" onClick={handleLoadMoreProducts}>
