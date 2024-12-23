@@ -1,7 +1,6 @@
 "use client";
 import * as React from "react";
 
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
 import {
   flexRender,
   getCoreRowModel,
@@ -10,19 +9,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -34,11 +21,9 @@ import {
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { data } from "./data";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import { toast } from "react-hot-toast";
-import axios from "axios";
 import {
   Dialog,
   DialogClose,
@@ -48,6 +33,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { api } from "@/config/axios.config";
 
 export function UsersTable() {
   const [users, setUsers] = React.useState([]);
@@ -55,17 +41,18 @@ export function UsersTable() {
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
-
   const [columns, setColumns] = React.useState([
     {
       accessorKey: "avatar",
       header: () => {
-        return <div className="ml-5">Avatar</div>;
+        return <div className="ml-8">Avatar</div>;
       },
       cell: ({ row }) => (
         <Avatar className="rounded-lg m-auto">
-          <AvatarImage src={row.original.avatar} />
-          <AvatarFallback>{`Avatar ${row.original.fullname}`}</AvatarFallback>
+          <AvatarImage src={row.original.profile.photo_url} />
+          <AvatarFallback className="uppercase">
+            {row.original.profile.fullname.slice(0, 2)}
+          </AvatarFallback>
         </Avatar>
       ),
     },
@@ -74,7 +61,7 @@ export function UsersTable() {
       header: "Fullname",
       cell: ({ row }) => (
         <div className="capitalize whitespace-nowrap">
-          {row.getValue("fullname") || "-"}
+          {row.original.profile.fullname || "-"}
         </div>
       ),
     },
@@ -92,15 +79,7 @@ export function UsersTable() {
         <div className="whitespace-nowrap">{row.getValue("phone") || "-"}</div>
       ),
     },
-    {
-      accessorKey: "emergency_contact",
-      header: "Emergency Contact",
-      cell: ({ row }) => (
-        <div className="whitespace-nowrap">
-          {row.getValue("emergency_contact") || "-"}
-        </div>
-      ),
-    },
+
     // {
     //   accessorKey: "description",
     //   header: "Description",
@@ -129,7 +108,7 @@ export function UsersTable() {
                   size="icon"
                   variant="outline"
                   className=" h-7 w-7"
-                  color="secondary"
+                  color="primary"
                 >
                   <Icon icon="heroicons:eye" className="h-4 w-4" />
                 </Button>
@@ -145,14 +124,16 @@ export function UsersTable() {
                     <div className="flex flex-col gap-y-2">
                       <p className="text-muted-foreground text-sm">Avatar</p>
                       <Avatar className="rounded-lg h-[56px] w-[56px]">
-                        <AvatarImage src={row.original.avatar} />
-                        <AvatarFallback>{`Avatar ${row.original.fullname}`}</AvatarFallback>
+                        <AvatarImage src={row.original.profile.photo_url} />
+                        <AvatarFallback className="uppercase">
+                          {row.original.profile.fullname.slice(0, 2)}
+                        </AvatarFallback>
                       </Avatar>
                     </div>
                     <div className="flex flex-col gap-y-2">
                       <p className="text-muted-foreground text-sm">Fullname</p>
                       <p className="text-sm text-default-900">
-                        {row.original.fullname}
+                        {row.original.profile.fullname}
                       </p>
                     </div>
                     <div className="flex flex-col gap-y-2">
@@ -161,12 +142,12 @@ export function UsersTable() {
                         {row.original.username || "-"}
                       </p>
                     </div>
-                    <div className="flex flex-col gap-y-2">
+                    {/* <div className="flex flex-col gap-y-2">
                       <p className="text-muted-foreground text-sm">Address</p>
                       <p className="text-sm text-default-900">
                         {row.original.address || "-"}
                       </p>
-                    </div>
+                    </div> */}
                     <div className="flex flex-col gap-y-2">
                       <p className="text-muted-foreground text-sm">Email</p>
                       <p className="text-sm text-default-900">
@@ -177,20 +158,6 @@ export function UsersTable() {
                       <p className="text-muted-foreground text-sm">Phone</p>
                       <p className="text-sm text-default-900">
                         {row.original.phone || "-"}
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-y-2">
-                      <p className="text-muted-foreground text-sm">NIK</p>
-                      <p className="text-sm text-default-900">
-                        {row.original.nik || "-"}
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-y-2">
-                      <p className="text-muted-foreground text-sm">
-                        Emergency Contact
-                      </p>
-                      <p className="text-sm text-default-900">
-                        {row.original.emergency_contact || "-"}
                       </p>
                     </div>
                   </div>
@@ -210,11 +177,17 @@ export function UsersTable() {
     },
   ]);
 
+  const user = localStorage.getItem("user")
+    ? JSON.parse(localStorage.getItem("user"))
+    : null;
+
   const getUsers = async () => {
     try {
-      const { data } = await axios.get(
-        `https://api-rakhsa.inovatiftujuh8.com/api/v1/admin/list/user`
-      );
+      const { data } = await api.get(`/admin/members`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
 
       setUsers(data.data);
     } catch (err) {
@@ -334,11 +307,11 @@ export function UsersTable() {
         </Table>
       </div>
 
-      <div className="flex items-center flex-wrap gap-4 px-8 py-4">
-        <div className="flex-1 text-sm text-muted-foreground whitespace-nowrap">
+      <div className="flex justify-end items-center flex-wrap gap-4 px-8 py-4">
+        {/* <div className="flex-1 text-sm text-muted-foreground whitespace-nowrap">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
+        </div> */}
 
         <div className="flex gap-2 items-center">
           <Button

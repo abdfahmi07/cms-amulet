@@ -37,6 +37,7 @@ import { getAddress } from "@/utils/maps";
 import moment from "moment";
 import { api } from "@/config/axios.config";
 import { Star, StarIcon } from "lucide-react";
+import starIcon from "@/public/images/logo/star.png";
 
 export function ResolvedReportList() {
   const [resolvedReportList, setResolvedReportList] = React.useState([]);
@@ -181,7 +182,13 @@ export function ResolvedReportList() {
                             {resolvedReport.rating ? (
                               [...Array(resolvedReport.rating).keys()].map(
                                 (i) => (
-                                  <StarIcon class="h-5 w-5" color="orange" />
+                                  <Image
+                                    src={starIcon}
+                                    className="h-5 w-5"
+                                    alt="Rating"
+                                    width={100}
+                                    height={100}
+                                  />
                                 )
                               )
                             ) : (
@@ -283,7 +290,15 @@ export function ResolvedReportList() {
                         <div className="flex gap-x-1">
                           {resolvedReportDetail.rating ? (
                             [...Array(resolvedReportDetail.rating).keys()].map(
-                              (i) => <StarIcon class="h-5 w-5" color="orange" />
+                              (i) => (
+                                <Image
+                                  src={starIcon}
+                                  className="h-5 w-5"
+                                  alt="Rating"
+                                  width={100}
+                                  height={100}
+                                />
+                              )
                             )
                           ) : (
                             <span>'-'</span>

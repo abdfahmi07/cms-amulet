@@ -41,6 +41,7 @@ import {
   LucideIcon,
   CustomIcon,
   Mail,
+  User,
 } from "@/components/svg";
 
 export const menusConfig = {
@@ -1049,11 +1050,11 @@ export const menusConfig = {
               },
             ],
           },
-          // {
-          //   title: "Early Warning System",
-          //   href: "/ews",
-          //   icon: Flag,
-          // },
+          {
+            title: "Users",
+            href: "/users",
+            icon: User,
+          },
           // {
           //   title: "News",
           //   href: "/news",

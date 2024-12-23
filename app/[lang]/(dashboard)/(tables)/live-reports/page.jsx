@@ -301,6 +301,16 @@ const LiveReportsPage = () => {
       socket.on("listen:ticketMessage", (data) => {
         messageMutation.mutate(data);
       });
+      socket.on("listen:ticketClosed", (data) => {
+        if (
+          (data.id === selectedReportId && data.status === "Resolved") ||
+          data.status === "Closed"
+        ) {
+          setSelectedReportId(null);
+        }
+
+        refetchReports();
+      });
     } catch (err) {
       console.log(err);
     }
@@ -326,7 +336,7 @@ const LiveReportsPage = () => {
   }, []);
 
   useEffect(() => {
-    setSelectedReportId(null);
+    // setSelectedReportId(null);
   }, []);
 
   console.log(selectedReportId);

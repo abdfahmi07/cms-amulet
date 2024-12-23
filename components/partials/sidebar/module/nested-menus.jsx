@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -9,6 +9,7 @@ import { cn, isLocationMatch, translate } from "@/lib/utils";
 import Link from "next/link";
 import LinkButton from "./link-or-button";
 import MultiNestedMenus from "./multi-nested";
+import { api } from "@/config/axios.config";
 
 const NestedMenus = ({
   nestedIndex,
@@ -19,6 +20,32 @@ const NestedMenus = ({
   multiIndex,
   trans,
 }) => {
+  const user = localStorage.getItem("user")
+    ? JSON.parse(localStorage.getItem("user"))
+    : null;
+  const [totalReports, setTotalReports] = useState([]);
+
+  const getTotalReports = async () => {
+    try {
+      const { data } = await api.get("/admin/tickets/count", {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      const results = Object.keys(data.data).map((key) => data.data[key]);
+
+      setTotalReports(results);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    getTotalReports();
+    return () => {};
+  }, []);
+
   return (
     <Collapsible open={nestedIndex === index}>
       <CollapsibleContent className="CollapsibleContent">
@@ -42,6 +69,7 @@ const NestedMenus = ({
                 multiIndex={multiIndex}
                 locationName={locationName}
                 trans={trans}
+                totalReport={totalReports[j]}
               >
                 <div className={cn("pl-3  text-sm capitalize  font-normal ")}>
                   {translate(item.title, trans)}

@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { cn, isLocationMatch } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 const LinkButton = ({
   children,
   item,
@@ -9,6 +10,7 @@ const LinkButton = ({
   index,
   locationName,
   multiIndex,
+  totalReport,
 }) => {
   return (
     <>
@@ -51,6 +53,9 @@ const LinkButton = ({
           })}
         >
           {children}
+          <Badge className="mt-2" variant="soft" color="warning">
+            Total : {totalReport}
+          </Badge>
         </Link>
       )}
     </>
